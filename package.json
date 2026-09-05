@@ -1,0 +1,45 @@
+{
+  "name": "release-graph",
+  "version": "0.1.0",
+  "description": "See which pull requests actually made it into your later releases, and how fast you ship. One self-contained HTML report, no dependencies.",
+  "type": "module",
+  "bin": {
+    "release-graph": "src/cli.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "git",
+    "release",
+    "releases",
+    "gitflow",
+    "git-flow",
+    "changelog",
+    "merge",
+    "cherry-pick",
+    "backport",
+    "release-notes",
+    "audit",
+    "visualization",
+    "cli"
+  ],
+  "author": "Tahmid Rahman",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TahmidRahman/release-graph.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TahmidRahman/release-graph/issues"
+  },
+  "homepage": "https://github.com/TahmidRahman/release-graph#readme",
+  "license": "MIT"
+}

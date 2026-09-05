@@ -1,0 +1,23 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "The two views" },
+    { "id": "page-2", "name": "Directions explored" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html",         "page": "page-1", "x": 0,    "y": 0,    "w": 1440, "h": 1010, "title": "Rhythm — the default view" },
+    { "file": "CarryForward.dc.html", "page": "page-1", "x": 1560, "y": 0,    "w": 1440, "h": 940,  "title": "Carry-forward — the audit" },
+    { "file": "Lanes.dc.html",        "page": "page-2", "x": 0,    "y": 0,    "w": 1440, "h": 900,  "title": "Branch lanes — not taken" },
+    { "file": "Matrix.dc.html",       "page": "page-2", "x": 1560, "y": 0,    "w": 1440, "h": 900,  "title": "Status matrix — not taken" }
+  ],
+  "annotations": [
+    { "id": "two-views", "x": 0, "y": -250, "w": 700, "page": "page-1",
+      "text": "Two views, no toggle.\nYour goal is two questions, so each gets a view that answers it — rather than one layout with a switch that makes the reader work out which mode to be in. Orientation is not a preference; it follows from the question." },
+    { "id": "rhythm-note", "x": 760, "y": -250, "w": 700, "page": "page-1",
+      "text": "RHYTHM — opens here. Time is the x-axis, which is the only way cadence is visible: 7–10 day releases through Feb–Mar, stretching to 24–36 days after the 2.0 fork. The cadence band above the graph makes that the headline rather than something you infer from tag dates." },
+    { "id": "audit-note", "x": 1560, "y": -160, "w": 700, "page": "page-1",
+      "text": "CARRY-FORWARD — the audit. Vertical, one row per release, ancestry drawn as a connected spine. Two separate alarms now, where the old build conflated them into one scary number:\namber = shipped but develop has not seen it (23) — a forecast, 2.1 will regress them\nred = in no branch and not in v2.0.1 (79) — actually gone" },
+    { "id": "not-taken", "x": 0, "y": -160, "w": 1400, "page": "page-2",
+      "text": "Explored and set aside. Branch lanes is the truest topology but needs a column per live branch, and opencrvs-core has 46. The status matrix reads fastest but shows no ancestry at all — it cannot tell you the 1.9 line forked away from 2.0, which is why the gaps exist. Kept for reference." }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

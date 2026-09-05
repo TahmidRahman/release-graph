@@ -1,0 +1,325 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin:0; background:#FFFFFF; color:#373050;
+           font-family:Poppins, "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
+    a { color:#0058E0; text-decoration:none; } a:hover { color:#0044B0; }
+    .m { font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  </style>
+</helmet>
+
+<div style="width:1440px; height:940px; display:flex; flex-direction:column; background:#FFFFFF; overflow:hidden">
+
+  <!-- header -->
+  <div style="display:flex; align-items:center; gap:20px; padding:0 28px; height:68px; flex:none; border-bottom:1px solid #E6E3F0">
+    <div style="display:flex; align-items:center; gap:10px">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M6 3v10a3 3 0 0 0 3 3h4" stroke="#0058E0" stroke-width="1.9" stroke-linecap="round"/>
+        <circle cx="6" cy="3.4" r="2.4" fill="#FFFFFF" stroke="#0058E0" stroke-width="1.9"/>
+        <circle cx="16" cy="16" r="2.4" fill="#FFFFFF" stroke="#0058E0" stroke-width="1.9"/>
+        <circle cx="6" cy="18.6" r="2.4" fill="#FFFFFF" stroke="#9C96AE" stroke-width="1.9"/>
+      </svg>
+      <span style="font-size:15px; font-weight:600; letter-spacing:-0.02em">opencrvs-core</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px; font-size:12.5px; color:#6B6483">
+      <span><b style="color:#373050; font-weight:600">51</b> releases</span>
+      <span style="color:#E6E3F0">·</span>
+      <span><b style="color:#373050; font-weight:600">5,415</b> pull requests</span>
+      <span style="color:#E6E3F0">·</span>
+      <span style="color:#0F7B62; font-weight:500">5,313 carried forward</span>
+      <span style="color:#E6E3F0">·</span>
+      <span style="color:#A96411; font-weight:500">23 off develop</span>
+      <span style="color:#E6E3F0">·</span>
+      <span style="color:#D24436; font-weight:500">79 lost</span>
+    </div>
+    <div style="flex-grow:1"></div>
+    <div style="display:flex; align-items:center; gap:8px">
+      <div style="display:flex; align-items:center; gap:7px; height:34px; padding:0 12px; border:1px solid #E6E3F0; border-radius:17px; background:#FFFFFF">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.6" stroke="#9C96AE" stroke-width="1.6"/><path d="M10.6 10.6L14 14" stroke="#9C96AE" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span style="font-size:12.5px; color:#9C96AE">Release, #PR, author</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:7px; height:34px; padding:0 14px; border:1px solid #0058E0; border-radius:17px; background:#E8F0FE; color:#0058E0; font-size:12.5px; font-weight:500">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2.6v7.2M5.2 7.2L8 10l2.8-2.8M3 12.4h10" stroke="#0058E0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Only gaps
+      </div>
+      <div style="height:34px; padding:0 16px; border-radius:17px; background:#0058E0; color:#FFFFFF; font-size:12.5px; font-weight:500; display:flex; align-items:center">Export</div>
+    </div>
+  </div>
+
+  <!-- alert strip -->
+  <div style="display:flex; align-items:center; gap:10px; padding:0 28px; height:40px; flex:none; background:#FBF1E9; border-bottom:1px solid #EEDAC6">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1.8l6.4 11.4H1.6L8 1.8z" stroke="#A96411" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.2v3.1M8 11.3h.01" stroke="#A96411" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span style="font-size:12.5px; color:#A96411"><b style="font-weight:600">2.1 will regress 23 pull requests.</b> They shipped on <span class="m">master</span> in v2.0.0, v1.9.16 and v2.0.1; <span class="m">develop</span> has never seen them. Not lost &mdash; but the next release off develop drops them.</span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:12px; color:#A96411; font-weight:500; border-bottom:1px solid #EEDAC6">Forward-port</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:10px; padding:0 28px; height:40px; flex:none; background:#FDEDEB; border-bottom:1px solid #F5C9C3">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="#D24436" stroke-width="1.5"/><path d="M5.8 5.8l4.4 4.4M10.2 5.8l-4.4 4.4" stroke="#D24436" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span style="font-size:12.5px; color:#D24436"><b style="font-weight:600">79 pull requests are gone.</b> Shipped in v1.2.1, v1.3.5, v1.5.0, v1.5.1 and v1.8.3, present in no branch and absent from v2.0.1 &mdash; including two security fixes in v1.5.1.</span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:12px; color:#D24436; font-weight:500; border-bottom:1px solid #F5C9C3">Show the 79</span>
+  </div>
+
+  <!-- column head -->
+  <div style="display:flex; align-items:center; padding:0 28px; height:34px; flex:none; background:#F8F7FC; border-bottom:1px solid #E6E3F0;
+              font-size:10px; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color:#9C96AE">
+    <div style="width:118px; flex:none">Ancestry</div>
+    <div style="width:196px; flex:none">Release</div>
+    <div style="width:196px; flex:none">Reached</div>
+    <div style="width:300px; flex:none">Did the work survive?</div>
+    <div style="width:98px; flex:none; text-align:right">Commits</div>
+    <div style="flex-grow:1; text-align:right">Shipped</div>
+  </div>
+
+  <!-- body -->
+  <div style="flex-grow:1; position:relative; overflow:hidden">
+
+    <!-- continuous ancestry spine: one drawing across every row -->
+    <svg width="118" height="660" viewBox="0 0 118 660" style="position:absolute; left:28px; top:0; pointer-events:none">
+      <!-- the 1.9 maintenance lane -->
+      <path d="M30,-6 L30,207" stroke="#C9C4D8" stroke-width="2" fill="none"/>
+      <path d="M30,207 L30,299" stroke="#C9C4D8" stroke-width="2" fill="none"/>
+      <!-- 2.0.0 forks right off 1.9.15 -->
+      <path d="M30,207 C30,230 62,230 62,253" stroke="#0058E0" stroke-width="2" fill="none"/>
+      <!-- the 2.0 lane -->
+      <path d="M62,253 L62,595" stroke="#0058E0" stroke-width="2" fill="none"/>
+      <!-- 1.9.16 merges across into 2.0.1 -->
+      <path d="M30,299 C30,470 62,430 62,595" stroke="#C9C4D8" stroke-width="1.6" fill="none" stroke-dasharray="4 3"/>
+      <!-- the 1.9 lane carries on past the viewport -->
+      <path d="M30,299 L30,340" stroke="#C9C4D8" stroke-width="2" fill="none" stroke-dasharray="3 4"/>
+
+      <circle cx="30" cy="23"  r="5.2" fill="#FFFFFF" stroke="#2E7D6B" stroke-width="2.4"/>
+      <circle cx="30" cy="69"  r="5.2" fill="#FFFFFF" stroke="#7A5AA8" stroke-width="2.4"/>
+      <circle cx="30" cy="115" r="5.2" fill="#FFFFFF" stroke="#B5793A" stroke-width="2.4"/>
+      <circle cx="30" cy="161" r="5.2" fill="#FFFFFF" stroke="#2F6FB8" stroke-width="2.4"/>
+      <circle cx="30" cy="207" r="5.2" fill="#FFFFFF" stroke="#A8536E" stroke-width="2.4"/>
+      <circle cx="62" cy="253" r="6.4" fill="#0058E0" stroke="#FFFFFF" stroke-width="2.4"/>
+      <circle cx="30" cy="299" r="6.4" fill="#3E8E7E" stroke="#FFFFFF" stroke-width="2.4"/>
+      <circle cx="62" cy="595" r="6.4" fill="#C2553F" stroke="#FFFFFF" stroke-width="2.4"/>
+    </svg>
+
+    <!-- rows -->
+    <div style="display:flex; flex-direction:column">
+
+      <!-- ============ collapsed rows ============ -->
+      <div style="display:flex; align-items:center; height:46px; padding:0 28px; border-bottom:1px solid #F1EFF8">
+        <div style="width:118px; flex:none"></div>
+        <div style="width:196px; flex:none"><span class="m" style="font-size:13px; font-weight:600">v1.9.11</span></div>
+        <div style="width:196px; flex:none; display:flex; gap:6px">
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">develop</span>
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">master</span>
+        </div>
+        <div style="width:300px; flex:none; display:flex; align-items:center; gap:10px">
+          <div style="width:150px; height:6px; border-radius:3px; background:#0F7B62"></div>
+          <span style="font-size:12px; color:#6B6483">11 landed</span>
+        </div>
+        <div style="width:98px; flex:none; text-align:right"><span class="m" style="font-size:12px; color:#6B6483">79</span></div>
+        <div style="flex-grow:1; text-align:right; font-size:12px; color:#9C96AE">9 Mar 2026</div>
+      </div>
+
+      <div style="display:flex; align-items:center; height:46px; padding:0 28px; border-bottom:1px solid #F1EFF8">
+        <div style="width:118px; flex:none"></div>
+        <div style="width:196px; flex:none"><span class="m" style="font-size:13px; font-weight:600">v1.9.12</span></div>
+        <div style="width:196px; flex:none; display:flex; gap:6px">
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">develop</span>
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">master</span>
+        </div>
+        <div style="width:300px; flex:none; display:flex; align-items:center; gap:10px">
+          <div style="width:96px; height:6px; border-radius:3px; background:#0F7B62"></div>
+          <span style="font-size:12px; color:#6B6483">7 landed</span>
+        </div>
+        <div style="width:98px; flex:none; text-align:right"><span class="m" style="font-size:12px; color:#6B6483">131</span></div>
+        <div style="flex-grow:1; text-align:right; font-size:12px; color:#9C96AE">2 Apr 2026</div>
+      </div>
+
+      <div style="display:flex; align-items:center; height:46px; padding:0 28px; border-bottom:1px solid #F1EFF8">
+        <div style="width:118px; flex:none"></div>
+        <div style="width:196px; flex:none"><span class="m" style="font-size:13px; font-weight:600">v1.9.13</span></div>
+        <div style="width:196px; flex:none; display:flex; gap:6px">
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">develop</span>
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">master</span>
+        </div>
+        <div style="width:300px; flex:none; display:flex; align-items:center; gap:10px">
+          <div style="width:136px; height:6px; border-radius:3px; background:#0F7B62"></div>
+          <span style="font-size:12px; color:#6B6483">10 landed</span>
+        </div>
+        <div style="width:98px; flex:none; text-align:right"><span class="m" style="font-size:12px; color:#6B6483">91</span></div>
+        <div style="flex-grow:1; text-align:right; font-size:12px; color:#9C96AE">8 May 2026</div>
+      </div>
+
+      <div style="display:flex; align-items:center; height:46px; padding:0 28px; border-bottom:1px solid #F1EFF8">
+        <div style="width:118px; flex:none"></div>
+        <div style="width:196px; flex:none"><span class="m" style="font-size:13px; font-weight:600">v1.9.14</span></div>
+        <div style="width:196px; flex:none; display:flex; gap:6px">
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">develop</span>
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">master</span>
+        </div>
+        <div style="width:300px; flex:none; display:flex; align-items:center; gap:10px">
+          <div style="width:164px; height:6px; border-radius:3px; background:#0F7B62"></div>
+          <span style="font-size:12px; color:#6B6483">12 landed</span>
+        </div>
+        <div style="width:98px; flex:none; text-align:right"><span class="m" style="font-size:12px; color:#6B6483">70</span></div>
+        <div style="flex-grow:1; text-align:right; font-size:12px; color:#9C96AE">25 May 2026</div>
+      </div>
+
+      <div style="display:flex; align-items:center; height:46px; padding:0 28px; border-bottom:1px solid #F1EFF8">
+        <div style="width:118px; flex:none"></div>
+        <div style="width:196px; flex:none"><span class="m" style="font-size:13px; font-weight:600">v1.9.15</span></div>
+        <div style="width:196px; flex:none; display:flex; gap:6px">
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">develop</span>
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">master</span>
+        </div>
+        <div style="width:300px; flex:none; display:flex; align-items:center; gap:10px">
+          <div style="width:96px; height:6px; border-radius:3px; background:#0F7B62"></div>
+          <span style="font-size:12px; color:#6B6483">7 landed</span>
+        </div>
+        <div style="width:98px; flex:none; text-align:right"><span class="m" style="font-size:12px; color:#6B6483">20</span></div>
+        <div style="flex-grow:1; text-align:right; font-size:12px; color:#9C96AE">19 Jun 2026</div>
+      </div>
+
+      <!-- 2.0.0 : the fork -->
+      <div style="display:flex; align-items:center; height:46px; padding:0 28px; border-bottom:1px solid #F1EFF8; background:#F8F7FC">
+        <div style="width:118px; flex:none"></div>
+        <div style="width:196px; flex:none; display:flex; align-items:baseline; gap:8px">
+          <span class="m" style="font-size:13px; font-weight:600">v2.0.0</span>
+          <span style="font-size:9.5px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#0058E0; background:#E8F0FE; padding:2px 6px; border-radius:4px">major</span>
+        </div>
+        <div style="width:196px; flex:none; display:flex; gap:6px">
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#FBF1E9; color:#A96411; font-weight:500">develop</span>
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">master</span>
+        </div>
+        <div style="width:300px; flex:none; display:flex; align-items:center; gap:10px">
+          <div style="display:flex; width:200px; height:6px; border-radius:3px; overflow:hidden">
+            <div style="flex-grow:426; background:#0F7B62"></div>
+            <div style="flex-grow:1; background:#A96411"></div>
+          </div>
+          <span style="font-size:12px; color:#6B6483">426 carried · <span style="color:#A96411">1 off develop</span></span>
+        </div>
+        <div style="width:98px; flex:none; text-align:right"><span class="m" style="font-size:12px; color:#6B6483">2,445</span></div>
+        <div style="flex-grow:1; text-align:right; font-size:12px; color:#9C96AE">25 Jun 2026</div>
+      </div>
+
+      <!-- 1.9.16 : expanded -->
+      <div style="display:flex; align-items:center; height:46px; padding:0 28px; background:#E8F0FE; box-shadow:inset 3px 0 0 #0058E0">
+        <div style="width:118px; flex:none"></div>
+        <div style="width:196px; flex:none; display:flex; align-items:baseline; gap:8px">
+          <span class="m" style="font-size:13px; font-weight:600">v1.9.16</span>
+          <span style="font-size:9.5px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:#A96411; background:#FBF1E9; padding:2px 6px; border-radius:4px">hotfix line</span>
+        </div>
+        <div style="width:196px; flex:none; display:flex; gap:6px">
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#FBF1E9; color:#A96411; font-weight:600">develop</span>
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">master</span>
+        </div>
+        <div style="width:300px; flex:none; display:flex; align-items:center; gap:10px">
+          <div style="display:flex; width:200px; height:6px; border-radius:3px; overflow:hidden">
+            <div style="flex-grow:1; background:#0F7B62"></div>
+            <div style="flex-grow:7; background:#A96411"></div>
+          </div>
+          <span style="font-size:12px; color:#A96411; font-weight:600">7 off develop</span>
+        </div>
+        <div style="width:98px; flex:none; text-align:right"><span class="m" style="font-size:12px; color:#6B6483">38</span></div>
+        <div style="flex-grow:1; text-align:right; font-size:12px; color:#9C96AE">31 Jul 2026</div>
+      </div>
+
+      <!-- expansion: the PRs -->
+      <div style="padding:12px 28px 14px 146px; background:#F8F7FC; border-bottom:1px solid #E6E3F0">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:9px">
+          <span style="font-size:10px; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color:#9C96AE">Shipped in this release</span>
+          <div style="flex-grow:1; height:1px; background:#E6E3F0"></div>
+          <span style="font-size:11px; color:#9C96AE">worst first</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:1px">
+          <div style="display:flex; align-items:center; gap:12px; padding:5px 0">
+            <span style="width:7px; height:7px; border-radius:50%; background:#A96411; flex:none"></span>
+            <span class="m" style="width:62px; flex:none; font-size:11.5px; color:#0058E0">#13317</span>
+            <span style="flex-grow:1; font-size:12.5px">[OCRVS-13246] Harden the client and login Content-Security-Policy</span>
+            <span style="width:112px; flex:none; font-size:11.5px; color:#9C96AE">Tahmid Rahman</span>
+            <span style="width:150px; flex:none; text-align:right; font-size:11px; color:#A96411; font-weight:500">not on develop</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:5px 0">
+            <span style="width:7px; height:7px; border-radius:50%; background:#A96411; flex:none"></span>
+            <span class="m" style="width:62px; flex:none; font-size:11.5px; color:#0058E0">#13313</span>
+            <span style="flex-grow:1; font-size:12.5px">Backport security fix 13197</span>
+            <span style="width:112px; flex:none; font-size:11.5px; color:#9C96AE">Tahmid Rahman</span>
+            <span style="width:150px; flex:none; text-align:right; font-size:11px; color:#A96411; font-weight:500">not on develop</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:5px 0">
+            <span style="width:7px; height:7px; border-radius:50%; background:#A96411; flex:none"></span>
+            <span class="m" style="width:62px; flex:none; font-size:11.5px; color:#0058E0">#12883</span>
+            <span style="flex-grow:1; font-size:12.5px">[OCRVS-12360] Feat: direct authentication for the third party</span>
+            <span style="width:112px; flex:none; font-size:11.5px; color:#9C96AE">Tahmid Rahman</span>
+            <span style="width:150px; flex:none; text-align:right; font-size:11px; color:#A96411; font-weight:500">not on develop</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:5px 0">
+            <span style="width:7px; height:7px; border-radius:50%; background:#A96411; flex:none"></span>
+            <span class="m" style="width:62px; flex:none; font-size:11.5px; color:#0058E0">#13169</span>
+            <span style="flex-grow:1; font-size:12.5px">[OCRVS-10135] Clear form button and clearable selects</span>
+            <span style="width:112px; flex:none; font-size:11.5px; color:#9C96AE">Tahmid Rahman</span>
+            <span style="width:150px; flex:none; text-align:right; font-size:11px; color:#A96411; font-weight:500">not on develop</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:5px 0">
+            <span style="width:7px; height:7px; border-radius:50%; background:#A96411; flex:none"></span>
+            <span class="m" style="width:62px; flex:none; font-size:11.5px; color:#0058E0">#13128</span>
+            <span style="flex-grow:1; font-size:12.5px">fix: use npm 11 instead of latest for toolkit publish</span>
+            <span style="width:112px; flex:none; font-size:11.5px; color:#9C96AE">Md. Ashikul Alam</span>
+            <span style="width:150px; flex:none; text-align:right; font-size:11px; color:#A96411; font-weight:500">equivalent on develop</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:5px 0; opacity:.55">
+            <span style="width:7px; height:7px; border-radius:50%; background:#0F7B62; flex:none"></span>
+            <span class="m" style="width:62px; flex:none; font-size:11.5px; color:#0058E0">#13163</span>
+            <span style="flex-grow:1; font-size:12.5px">[OCRVS-13124] Cherry pick &ldquo;suppress mobile PIN re-lock&rdquo;</span>
+            <span style="width:112px; flex:none; font-size:11.5px; color:#9C96AE">Tahmid Rahman</span>
+            <span style="width:150px; flex:none; text-align:right; font-size:11px; color:#0F7B62">on every branch</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px; margin-top:10px">
+          <div style="height:29px; padding:0 13px; border-radius:15px; background:#0058E0; color:#FFFFFF; font-size:12px; font-weight:500; display:flex; align-items:center">Forward-port these 7 to develop</div>
+          <div style="height:29px; padding:0 13px; border-radius:15px; border:1px solid #E6E3F0; color:#6B6483; font-size:12px; display:flex; align-items:center">Copy cherry-pick list</div>
+        </div>
+      </div>
+
+      <!-- 2.0.1 -->
+      <div style="display:flex; align-items:center; height:46px; padding:0 28px; border-bottom:1px solid #F1EFF8">
+        <div style="width:118px; flex:none"></div>
+        <div style="width:196px; flex:none"><span class="m" style="font-size:13px; font-weight:600">v2.0.1</span></div>
+        <div style="width:196px; flex:none; display:flex; gap:6px">
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#FBF1E9; color:#A96411; font-weight:500">develop</span>
+          <span style="font-size:11px; padding:2px 8px; border-radius:10px; background:#ECF8F4; color:#0F7B62; font-weight:500">master</span>
+        </div>
+        <div style="width:300px; flex:none; display:flex; align-items:center; gap:10px">
+          <div style="display:flex; width:200px; height:6px; border-radius:3px; overflow:hidden">
+            <div style="flex-grow:4; background:#0F7B62"></div>
+            <div style="flex-grow:15; background:#A96411"></div>
+          </div>
+          <span style="font-size:12px; color:#A96411; font-weight:600">15 off develop</span>
+        </div>
+        <div style="width:98px; flex:none; text-align:right"><span class="m" style="font-size:12px; color:#6B6483">68</span></div>
+        <div style="flex-grow:1; text-align:right; font-size:12px; color:#9C96AE">24 Aug 2026</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- footer legend -->
+  <div style="display:flex; align-items:center; gap:22px; padding:0 28px; height:38px; flex:none; border-top:1px solid #E6E3F0; background:#F8F7FC; font-size:11.5px; color:#6B6483">
+    <span style="display:flex; align-items:center; gap:6px"><span style="width:7px; height:7px; border-radius:50%; background:#0F7B62"></span>carried forward</span>
+    <span style="display:flex; align-items:center; gap:6px"><span style="width:7px; height:7px; border-radius:50%; background:#A96411"></span>shipped, not on develop</span>
+    <span style="display:flex; align-items:center; gap:6px"><span style="width:7px; height:7px; border-radius:50%; background:#D24436"></span>lost</span>
+    <div style="flex-grow:1"></div>
+    <span class="m" style="color:#9C96AE">npx release-graph</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

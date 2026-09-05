@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin:0; background:#FFFFFF; color:#373050; font-family:Poppins,system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+    a { color:#0058E0; text-decoration:none; } a:hover { color:#0044B0; }
+    .m { font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  </style>
+</helmet>
+
+<div style="width:1440px; height:900px; display:flex; flex-direction:column; background:#FFFFFF; overflow:hidden">
+
+  <div style="display:flex; align-items:center; gap:16px; padding:0 28px; height:60px; flex:none; border-bottom:1px solid #E6E3F0">
+    <span style="font-size:14.5px; font-weight:600; letter-spacing:-0.02em">opencrvs-core</span>
+    <span style="font-size:12.5px; color:#6B6483">branch topology · Mar &ndash; Aug 2026</span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:11.5px; color:#9C96AE">Newest first</span>
+  </div>
+
+  <!-- lane headers -->
+  <div style="display:flex; height:36px; flex:none; align-items:center; border-bottom:1px solid #E6E3F0; background:#F8F7FC">
+    <div style="width:92px; flex:none"></div>
+    <div style="width:180px; flex:none; text-align:center"><span class="m" style="font-size:11.5px; font-weight:600; color:#373050">develop</span></div>
+    <div style="width:180px; flex:none; text-align:center"><span class="m" style="font-size:11.5px; font-weight:600; color:#373050">master</span></div>
+    <div style="width:180px; flex:none; text-align:center"><span class="m" style="font-size:11.5px; color:#0058E0">release-v2.0.1</span></div>
+    <div style="width:180px; flex:none; text-align:center"><span class="m" style="font-size:11.5px; color:#3E8E7E">release-v1.9.16</span></div>
+    <div style="flex-grow:1; padding-left:24px"><span style="font-size:10px; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color:#9C96AE">What happened</span></div>
+  </div>
+
+  <div style="flex-grow:1; display:flex; min-height:0">
+    <!-- the graph -->
+    <div style="width:812px; flex:none; position:relative">
+      <svg width="812" height="700" viewBox="0 0 812 700">
+        <!-- date ticks -->
+        <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#C0BAD0">
+          <text x="14" y="44">24 Aug</text><text x="14" y="164">31 Jul</text><text x="14" y="284">25 Jun</text>
+          <text x="14" y="404">19 Jun</text><text x="14" y="524">25 May</text><text x="14" y="644">8 May</text>
+        </g>
+        <g stroke="#F4F2FA"><line x1="92" y1="80" x2="812" y2="80"/><line x1="92" y1="200" x2="812" y2="200"/>
+          <line x1="92" y1="320" x2="812" y2="320"/><line x1="92" y1="440" x2="812" y2="440"/><line x1="92" y1="560" x2="812" y2="560"/></g>
+
+        <!-- develop lane (x=182) : unbroken trunk -->
+        <path d="M182,0 L182,700" stroke="#9C96AE" stroke-width="2.2" fill="none"/>
+        <!-- master lane (x=362) -->
+        <path d="M362,20 L362,700" stroke="#6B6483" stroke-width="2.2" fill="none"/>
+        <!-- release-v2.0.1 lane (x=542) -->
+        <path d="M542,40 L542,300" stroke="#0058E0" stroke-width="2.2" fill="none"/>
+        <!-- release-v1.9.16 lane (x=722) -->
+        <path d="M722,160 L722,420" stroke="#3E8E7E" stroke-width="2.2" fill="none"/>
+
+        <!-- 2.0 line cut from master at the 2.0.0 tag, then tagged 2.0.1 and merged back to master -->
+        <path d="M362,300 C362,280 542,320 542,300" stroke="#0058E0" stroke-width="1.8" fill="none" opacity=".8"/>
+        <path d="M542,40 C542,20 362,60 362,40" stroke="#0058E0" stroke-width="1.8" fill="none" opacity=".8"/>
+        <!-- ...but never back into develop -->
+        <path d="M542,40 C480,40 420,40 300,40" stroke="#D24436" stroke-width="1.7" fill="none" stroke-dasharray="3 3"/>
+        <text x="268" y="44" font-family="Poppins,sans-serif" font-size="12" fill="#D24436">&#9888;</text>
+
+        <!-- 1.9 hotfix line off master, tagged, merged to master, never to develop -->
+        <path d="M362,420 C362,400 722,440 722,420" stroke="#3E8E7E" stroke-width="1.8" fill="none" opacity=".8"/>
+        <path d="M722,160 C722,140 362,180 362,160" stroke="#3E8E7E" stroke-width="1.8" fill="none" opacity=".8"/>
+        <path d="M722,160 C640,160 500,160 300,160" stroke="#D24436" stroke-width="1.7" fill="none" stroke-dasharray="3 3"/>
+        <text x="268" y="164" font-family="Poppins,sans-serif" font-size="12" fill="#D24436">&#9888;</text>
+
+        <!-- healthy release: 1.9.15 merged both ways -->
+        <path d="M182,404 C260,404 300,404 362,404" stroke="#A8536E" stroke-width="1.8" fill="none"/>
+
+        <!-- ordinary develop commits -->
+        <g fill="#FFFFFF" stroke="#C9C4D8" stroke-width="1.8">
+          <circle cx="182" cy="100" r="3.4"/><circle cx="182" cy="140" r="3.4"/><circle cx="182" cy="220" r="3.4"/>
+          <circle cx="182" cy="260" r="3.4"/><circle cx="182" cy="340" r="3.4"/><circle cx="182" cy="470" r="3.4"/>
+          <circle cx="182" cy="520" r="3.4"/><circle cx="182" cy="600" r="3.4"/><circle cx="182" cy="650" r="3.4"/>
+        </g>
+        <!-- release branch commits -->
+        <g fill="#FFFFFF" stroke="#0058E0" stroke-width="1.8"><circle cx="542" cy="110" r="3.4"/><circle cx="542" cy="170" r="3.4"/><circle cx="542" cy="230" r="3.4"/></g>
+        <g fill="#FFFFFF" stroke="#3E8E7E" stroke-width="1.8"><circle cx="722" cy="230" r="3.4"/><circle cx="722" cy="290" r="3.4"/><circle cx="722" cy="350" r="3.4"/></g>
+
+        <!-- tags on master -->
+        <g>
+          <circle cx="362" cy="40" r="6" fill="#C2553F" stroke="#FFFFFF" stroke-width="2.2"/>
+          <circle cx="362" cy="160" r="6" fill="#3E8E7E" stroke="#FFFFFF" stroke-width="2.2"/>
+          <circle cx="362" cy="300" r="6" fill="#0058E0" stroke="#FFFFFF" stroke-width="2.2"/>
+          <circle cx="362" cy="404" r="6" fill="#A8536E" stroke="#FFFFFF" stroke-width="2.2"/>
+        </g>
+        <g font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600">
+          <text x="376" y="36" fill="#C2553F">v2.0.1</text>
+          <text x="376" y="156" fill="#3E8E7E">v1.9.16</text>
+          <text x="376" y="296" fill="#0058E0">v2.0.0</text>
+          <text x="376" y="400" fill="#A8536E">v1.9.15</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- annotation column -->
+    <div style="flex-grow:1; border-left:1px solid #F1EFF8; padding:0 28px">
+      <div style="height:120px; display:flex; flex-direction:column; justify-content:center; gap:3px; border-bottom:1px solid #F1EFF8">
+        <span style="font-size:12.5px; font-weight:600; color:#D24436">v2.0.1 stopped at master</span>
+        <span style="font-size:11.5px; color:#6B6483; line-height:1.45">15 of 19 pull requests exist only on the production line.</span>
+      </div>
+      <div style="height:120px; display:flex; flex-direction:column; justify-content:center; gap:3px; border-bottom:1px solid #F1EFF8">
+        <span style="font-size:12.5px; font-weight:600; color:#D24436">v1.9.16 stopped at master</span>
+        <span style="font-size:11.5px; color:#6B6483; line-height:1.45">7 of 8 pull requests, including two security hardening fixes.</span>
+      </div>
+      <div style="height:120px; display:flex; flex-direction:column; justify-content:center; gap:3px; border-bottom:1px solid #F1EFF8">
+        <span style="font-size:12.5px; font-weight:600; color:#0058E0">v2.0.0 cut the new major line</span>
+        <span style="font-size:11.5px; color:#6B6483; line-height:1.45">2,445 commits. Everything after this forks into two lines.</span>
+      </div>
+      <div style="height:120px; display:flex; flex-direction:column; justify-content:center; gap:3px; border-bottom:1px solid #F1EFF8">
+        <span style="font-size:12.5px; font-weight:600; color:#0F7B62">v1.9.15 merged cleanly</span>
+        <span style="font-size:11.5px; color:#6B6483; line-height:1.45">Reached develop and master. The last release that did.</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:9px; padding:0 28px; height:44px; flex:none; border-top:1px solid #E6E3F0; background:#FBF1E9">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="#A96411" stroke-width="1.5"/><path d="M8 4.8v3.6M8 10.9h.01" stroke="#A96411" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span style="font-size:12px; color:#A96411">Truest picture of the topology, but a lane per branch: opencrvs-core has 46 release branches, so most of the repo cannot be on screen at once.</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

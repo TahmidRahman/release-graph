@@ -1,0 +1,8 @@
+/* opencrvs.org palette, lifted from computed styles on the live site */
+--paper:#FFFFFF; --surface:#F8F7FC; --sunk:#F2F0F9;
+--ink:#373050; --ink-2:#6B6483; --ink-3:#9C96AE;
+--line:#E6E3F0; --line-2:#F1EFF8;
+--blue:#0058E0; --blue-soft:#E8F0FE; --blue-line:#B9D0FA;
+--ok:#0F7B62; --ok-soft:#ECF8F4; --ok-line:#BFE3D7;
+--warn:#A96411; --warn-soft:#FBF1E9; --warn-line:#EEDAC6;
+--bad:#D24436; --bad-soft:#FDEDEB; --bad-line:#F5C9C3;

@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin:0; background:#FFFFFF; color:#373050; font-family:Poppins,system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+    a { color:#0058E0; text-decoration:none; } a:hover { color:#0044B0; }
+    .m { font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  </style>
+</helmet>
+
+<div style="width:1440px; height:1010px; display:flex; flex-direction:column; background:#FFFFFF; overflow:hidden">
+
+  <div style="display:flex; align-items:center; gap:16px; padding:0 28px; height:60px; flex:none; border-bottom:1px solid #E6E3F0">
+    <span style="font-size:14.5px; font-weight:600; letter-spacing:-0.02em">opencrvs-core</span>
+    <span style="font-size:12.5px; color:#6B6483">51 releases · 5,415 PRs · <span style="color:#0F7B62">5,313 carried forward</span> · <span style="color:#A96411">23 off develop</span> · <span style="color:#D24436">79 lost</span></span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:11.5px; color:#9C96AE">Cadence &amp; carry-forward over time</span>
+    <div style="display:flex; gap:4px">
+      <div style="width:30px; height:30px; border-radius:15px; border:1px solid #E6E3F0; color:#6B6483; display:flex; align-items:center; justify-content:center; font-size:15px">&minus;</div>
+      <div style="width:30px; height:30px; border-radius:15px; border:1px solid #E6E3F0; color:#6B6483; display:flex; align-items:center; justify-content:center; font-size:15px">+</div>
+    </div>
+  </div>
+
+  <!-- time axis -->
+  <div style="display:flex; height:30px; flex:none; border-bottom:1px solid #E6E3F0; background:#F8F7FC">
+    <div style="width:212px; flex:none; border-right:1px solid #E6E3F0; display:flex; align-items:center; padding:0 20px;
+                font-size:10px; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color:#9C96AE">Release</div>
+    <div style="flex-grow:1; position:relative">
+      <svg width="1228" height="30" viewBox="0 0 1228 30">
+        <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#9C96AE">
+          <line x1="28" y1="0" x2="28" y2="30" stroke="#E6E3F0"/><text x="35" y="19">Mar</text>
+          <line x1="223" y1="0" x2="223" y2="30" stroke="#E6E3F0"/><text x="230" y="19">Apr</text>
+          <line x1="412" y1="0" x2="412" y2="30" stroke="#E6E3F0"/><text x="419" y="19">May</text>
+          <line x1="607" y1="0" x2="607" y2="30" stroke="#E6E3F0"/><text x="614" y="19">Jun</text>
+          <line x1="796" y1="0" x2="796" y2="30" stroke="#E6E3F0"/><text x="803" y="19">Jul</text>
+          <line x1="991" y1="0" x2="991" y2="30" stroke="#E6E3F0"/><text x="998" y="19">Aug</text>
+          <line x1="1186" y1="0" x2="1186" y2="30" stroke="#E6E3F0"/><text x="1193" y="19">Sep</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+
+  <!-- release cadence: days since the previous release -->
+  <div style="display:flex; height:76px; flex:none; border-bottom:1px solid #E6E3F0">
+    <div style="width:212px; flex:none; border-right:1px solid #E6E3F0; padding:10px 20px 0">
+      <div style="font-size:10px; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color:#9C96AE">Cadence</div>
+      <div style="font-size:10.5px; color:#C0BAD0; margin-top:2px">days since previous</div>
+    </div>
+    <div style="flex-grow:1; position:relative">
+      <svg width="1228" height="76" viewBox="0 0 1228 76">
+        <line x1="0" y1="62" x2="1228" y2="62" stroke="#E6E3F0"/>
+        <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#9C96AE" text-anchor="middle">
+          <rect x="72"   y="50" width="12" height="12" rx="2" fill="#C9C4D8"/><text x="78"   y="46">10</text>
+          <rect x="223"  y="33" width="12" height="29" rx="2" fill="#C9C4D8"/><text x="229"  y="29">24</text>
+          <rect x="449"  y="18" width="12" height="44" rx="2" fill="#C9C4D8"/><text x="455"  y="14">36</text>
+          <rect x="556"  y="41" width="12" height="21" rx="2" fill="#C9C4D8"/><text x="562"  y="37">17</text>
+          <rect x="714"  y="31" width="12" height="31" rx="2" fill="#C9C4D8"/><text x="720"  y="27">25</text>
+          <rect x="752"  y="55" width="12" height="7"  rx="2" fill="#0058E0"/><text x="758"  y="51" fill="#0058E0">6</text>
+          <rect x="979"  y="18" width="12" height="44" rx="2" fill="#C9C4D8"/><text x="985"  y="14">36</text>
+          <rect x="1130" y="33" width="12" height="29" rx="2" fill="#C9C4D8"/><text x="1136" y="29">24</text>
+        </g>
+        <text x="8" y="72" font-family="Poppins,sans-serif" font-size="10" fill="#C0BAD0">tight 7&ndash;10 day cadence through Feb&ndash;Mar, stretching to 24&ndash;36 days after the 2.0 fork</text>
+      </svg>
+    </div>
+  </div>
+  <div style="flex-grow:1; display:flex; min-height:0">
+    <!-- frozen label gutter -->
+    <div style="width:212px; flex:none; border-right:1px solid #E6E3F0">
+      <div style="height:52px; padding:8px 20px; border-bottom:1px solid #F1EFF8; display:flex; flex-direction:column; justify-content:center">
+        <span class="m" style="font-size:12.5px; font-weight:600"><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#2E7D6B; margin-right:7px"></span>v1.9.11</span>
+        <span style="font-size:11px; color:#9C96AE; margin-left:14px">9 Mar · 11 PRs</span>
+      </div>
+      <div style="height:52px; padding:8px 20px; border-bottom:1px solid #F1EFF8; display:flex; flex-direction:column; justify-content:center">
+        <span class="m" style="font-size:12.5px; font-weight:600"><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#7A5AA8; margin-right:7px"></span>v1.9.12</span>
+        <span style="font-size:11px; color:#9C96AE; margin-left:14px">2 Apr · 7 PRs</span>
+      </div>
+      <div style="height:52px; padding:8px 20px; border-bottom:1px solid #F1EFF8; display:flex; flex-direction:column; justify-content:center">
+        <span class="m" style="font-size:12.5px; font-weight:600"><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#B5793A; margin-right:7px"></span>v1.9.13</span>
+        <span style="font-size:11px; color:#9C96AE; margin-left:14px">8 May · 10 PRs</span>
+      </div>
+      <div style="height:52px; padding:8px 20px; border-bottom:1px solid #F1EFF8; display:flex; flex-direction:column; justify-content:center">
+        <span class="m" style="font-size:12.5px; font-weight:600"><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#2F6FB8; margin-right:7px"></span>v1.9.14</span>
+        <span style="font-size:11px; color:#9C96AE; margin-left:14px">25 May · 12 PRs</span>
+      </div>
+      <div style="height:52px; padding:8px 20px; border-bottom:1px solid #F1EFF8; display:flex; flex-direction:column; justify-content:center">
+        <span class="m" style="font-size:12.5px; font-weight:600"><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#A8536E; margin-right:7px"></span>v1.9.15</span>
+        <span style="font-size:11px; color:#9C96AE; margin-left:14px">19 Jun · 7 PRs</span>
+      </div>
+      <div style="height:52px; padding:8px 20px; border-bottom:1px solid #F1EFF8; display:flex; flex-direction:column; justify-content:center; background:#F8F7FC">
+        <span class="m" style="font-size:12.5px; font-weight:600"><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#0058E0; margin-right:7px"></span>v2.0.0</span>
+        <span style="font-size:11px; color:#9C96AE; margin-left:14px">25 Jun · 427 PRs · <span style="color:#A96411">1 off develop</span></span>
+      </div>
+      <div style="height:52px; padding:8px 20px; border-bottom:1px solid #F1EFF8; display:flex; flex-direction:column; justify-content:center">
+        <span class="m" style="font-size:12.5px; font-weight:600"><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#3E8E7E; margin-right:7px"></span>v1.9.16</span>
+        <span style="font-size:11px; color:#9C96AE; margin-left:14px">31 Jul · 8 PRs · <span style="color:#A96411">7 off develop</span></span>
+      </div>
+      <div style="height:52px; padding:8px 20px; border-bottom:1px solid #F1EFF8; display:flex; flex-direction:column; justify-content:center">
+        <span class="m" style="font-size:12.5px; font-weight:600"><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#C2553F; margin-right:7px"></span>v2.0.1</span>
+        <span style="font-size:11px; color:#9C96AE; margin-left:14px">24 Aug · 19 PRs · <span style="color:#A96411">15 off develop</span></span>
+      </div>
+    </div>
+
+    <!-- the ribbons -->
+    <div style="flex-grow:1; position:relative; overflow:hidden">
+      <svg width="1228" height="416" viewBox="0 0 1228 416">
+        <!-- per-row rails: master dotted above, develop solid below -->
+        <g stroke-width="1.15">
+          <g stroke="#C9C4D8" stroke-dasharray="1.5 3.5">
+            <line x1="0" y1="11" x2="1228" y2="11"/><line x1="0" y1="63" x2="1228" y2="63"/>
+            <line x1="0" y1="115" x2="1228" y2="115"/><line x1="0" y1="167" x2="1228" y2="167"/>
+            <line x1="0" y1="219" x2="1228" y2="219"/><line x1="0" y1="271" x2="1228" y2="271"/>
+            <line x1="0" y1="323" x2="1228" y2="323"/><line x1="0" y1="375" x2="1228" y2="375"/>
+          </g>
+          <g stroke="#D9D5E6">
+            <line x1="0" y1="41" x2="1228" y2="41"/><line x1="0" y1="93" x2="1228" y2="93"/>
+            <line x1="0" y1="145" x2="1228" y2="145"/><line x1="0" y1="197" x2="1228" y2="197"/>
+            <line x1="0" y1="249" x2="1228" y2="249"/><line x1="0" y1="301" x2="1228" y2="301"/>
+            <line x1="0" y1="353" x2="1228" y2="353"/><line x1="0" y1="405" x2="1228" y2="405"/>
+          </g>
+        </g>
+        <g stroke="#F1EFF8"><line x1="0" y1="52" x2="1228" y2="52"/><line x1="0" y1="104" x2="1228" y2="104"/>
+          <line x1="0" y1="156" x2="1228" y2="156"/><line x1="0" y1="208" x2="1228" y2="208"/>
+          <line x1="0" y1="260" x2="1228" y2="260"/><line x1="0" y1="312" x2="1228" y2="312"/>
+          <line x1="0" y1="364" x2="1228" y2="364"/></g>
+
+        <!-- v1.9.11 -->
+        <path d="M15,41 C23,41 15,26 24,26 L78,26" fill="none" stroke="#2E7D6B" stroke-width="3" stroke-linecap="round"/>
+        <path d="M78,26 C88,26 79,41 90,41" fill="none" stroke="#2E7D6B" stroke-width="2"/><circle cx="90" cy="41" r="2.3" fill="#2E7D6B"/>
+        <path d="M78,26 C88,26 79,11 90,11" fill="none" stroke="#2E7D6B" stroke-width="2"/><circle cx="90" cy="11" r="2.3" fill="#2E7D6B"/>
+        <path d="M78,21.5 L82.5,26 L78,30.5 L73.5,26 Z" fill="#2E7D6B"/>
+        <!-- v1.9.12 -->
+        <path d="M78,93 C86,93 78,78 87,78 L229,78" fill="none" stroke="#7A5AA8" stroke-width="3" stroke-linecap="round"/>
+        <path d="M229,78 C239,78 230,93 241,93" fill="none" stroke="#7A5AA8" stroke-width="2"/><circle cx="241" cy="93" r="2.3" fill="#7A5AA8"/>
+        <path d="M229,78 C239,78 230,63 241,63" fill="none" stroke="#7A5AA8" stroke-width="2"/><circle cx="241" cy="63" r="2.3" fill="#7A5AA8"/>
+        <path d="M229,73.5 L233.5,78 L229,82.5 L224.5,78 Z" fill="#7A5AA8"/>
+        <!-- v1.9.13 -->
+        <path d="M229,145 C237,145 229,130 238,130 L455,130" fill="none" stroke="#B5793A" stroke-width="3" stroke-linecap="round"/>
+        <path d="M455,130 C465,130 456,145 467,145" fill="none" stroke="#B5793A" stroke-width="2"/><circle cx="467" cy="145" r="2.3" fill="#B5793A"/>
+        <path d="M455,130 C465,130 456,115 467,115" fill="none" stroke="#B5793A" stroke-width="2"/><circle cx="467" cy="115" r="2.3" fill="#B5793A"/>
+        <path d="M455,125.5 L459.5,130 L455,134.5 L450.5,130 Z" fill="#B5793A"/>
+        <!-- v1.9.14 -->
+        <path d="M455,197 C463,197 455,182 464,182 L562,182" fill="none" stroke="#2F6FB8" stroke-width="3" stroke-linecap="round"/>
+        <path d="M562,182 C572,182 563,197 574,197" fill="none" stroke="#2F6FB8" stroke-width="2"/><circle cx="574" cy="197" r="2.3" fill="#2F6FB8"/>
+        <path d="M562,182 C572,182 563,167 574,167" fill="none" stroke="#2F6FB8" stroke-width="2"/><circle cx="574" cy="167" r="2.3" fill="#2F6FB8"/>
+        <path d="M562,177.5 L566.5,182 L562,186.5 L557.5,182 Z" fill="#2F6FB8"/>
+        <!-- v1.9.15 -->
+        <path d="M562,249 C570,249 562,234 571,234 L720,234" fill="none" stroke="#A8536E" stroke-width="3" stroke-linecap="round"/>
+        <path d="M720,234 C730,234 721,249 732,249" fill="none" stroke="#A8536E" stroke-width="2"/><circle cx="732" cy="249" r="2.3" fill="#A8536E"/>
+        <path d="M720,234 C730,234 721,219 732,219" fill="none" stroke="#A8536E" stroke-width="2"/><circle cx="732" cy="219" r="2.3" fill="#A8536E"/>
+        <path d="M720,229.5 L724.5,234 L720,238.5 L715.5,234 Z" fill="#A8536E"/>
+        <!-- v2.0.0 : absent from develop -->
+        <path d="M720,301 C728,301 720,286 729,286 L758,286" fill="none" stroke="#0058E0" stroke-width="3" stroke-linecap="round"/>
+        <path d="M758,286 C768,286 759,271 770,271" fill="none" stroke="#0058E0" stroke-width="2"/><circle cx="770" cy="271" r="2.3" fill="#0058E0"/>
+        <path d="M758,286 C766,286 759,294 767,294" fill="none" stroke="#A96411" stroke-width="1.7" stroke-dasharray="2.5 2.5"/>
+        <text x="772" y="298" font-family="Poppins,sans-serif" font-size="10" fill="#A96411">&#9888;</text>
+        <path d="M758,281.5 L762.5,286 L758,290.5 L753.5,286 Z" fill="#0058E0"/>
+        <!-- v1.9.16 -->
+        <path d="M720,353 C728,353 720,338 729,338 L985,338" fill="none" stroke="#3E8E7E" stroke-width="3" stroke-linecap="round"/>
+        <path d="M985,338 C995,338 986,323 997,323" fill="none" stroke="#3E8E7E" stroke-width="2"/><circle cx="997" cy="323" r="2.3" fill="#3E8E7E"/>
+        <path d="M985,338 C993,338 986,346 994,346" fill="none" stroke="#A96411" stroke-width="1.7" stroke-dasharray="2.5 2.5"/>
+        <text x="999" y="350" font-family="Poppins,sans-serif" font-size="10" fill="#A96411">&#9888;</text>
+        <path d="M985,333.5 L989.5,338 L985,342.5 L980.5,338 Z" fill="#3E8E7E"/>
+        <!-- v2.0.1 -->
+        <path d="M985,405 C993,405 985,390 994,390 L1136,390" fill="none" stroke="#C2553F" stroke-width="3" stroke-linecap="round"/>
+        <path d="M1136,390 C1146,390 1137,375 1148,375" fill="none" stroke="#C2553F" stroke-width="2"/><circle cx="1148" cy="375" r="2.3" fill="#C2553F"/>
+        <path d="M1136,390 C1144,390 1137,398 1145,398" fill="none" stroke="#A96411" stroke-width="1.7" stroke-dasharray="2.5 2.5"/>
+        <text x="1150" y="402" font-family="Poppins,sans-serif" font-size="10" fill="#A96411">&#9888;</text>
+        <path d="M1136,385.5 L1140.5,390 L1136,394.5 L1131.5,390 Z" fill="#C2553F"/>
+      </svg>
+
+      <!-- hover state: the release line split open into its PRs -->
+      <div style="position:absolute; left:700px; top:364px; width:330px; background:#FFFFFF; border:1px solid #E6E3F0; border-top:0;
+                  border-radius:0 0 8px 8px; box-shadow:0 12px 28px rgba(55,48,80,.14); padding:9px 12px 11px">
+        <div style="font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#9C96AE; margin-bottom:7px">v1.9.16 &mdash; 7 of 8 still off develop</div>
+        <div style="display:flex; flex-wrap:wrap; gap:5px">
+          <span class="m" style="font-size:10.5px; padding:2px 7px; border-radius:4px; background:#FBF1E9; color:#A96411; border:1px solid #EEDAC6">#13317</span>
+          <span class="m" style="font-size:10.5px; padding:2px 7px; border-radius:4px; background:#FBF1E9; color:#A96411; border:1px solid #EEDAC6">#13313</span>
+          <span class="m" style="font-size:10.5px; padding:2px 7px; border-radius:4px; background:#FBF1E9; color:#A96411; border:1px solid #EEDAC6">#12883</span>
+          <span class="m" style="font-size:10.5px; padding:2px 7px; border-radius:4px; background:#FBF1E9; color:#A96411; border:1px solid #EEDAC6">#13169</span>
+          <span class="m" style="font-size:10.5px; padding:2px 7px; border-radius:4px; background:#FBF1E9; color:#A96411; border:1px solid #EEDAC6">#13321</span>
+          <span class="m" style="font-size:10.5px; padding:2px 7px; border-radius:4px; background:#FBF1E9; color:#A96411; border:1px solid #EEDAC6">#13128</span>
+          <span class="m" style="font-size:10.5px; padding:2px 7px; border-radius:4px; background:#ECF8F4; color:#0F7B62; border:1px solid #BFE3D7">#13163</span>
+          <span class="m" style="font-size:10.5px; padding:2px 7px; border-radius:4px; background:#ECF8F4; color:#0F7B62; border:1px solid #BFE3D7">#13072</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- the cost of this layout, shown honestly -->
+  <div style="display:flex; align-items:center; gap:9px; padding:0 28px; height:44px; flex:none; border-top:1px solid #E6E3F0; background:#FBF1E9">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="#A96411" stroke-width="1.5"/><path d="M8 4.8v3.6M8 10.9h.01" stroke="#A96411" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span style="font-size:12px; color:#A96411">Time is spatial here, which is the point: cadence, the length of each release, and the 1.9 and 2.0 lines running side by side. The cost is a diagonal &mdash; the view follows it as you scroll.</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

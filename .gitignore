@@ -1,0 +1,14 @@
+node_modules/
+*.tgz
+
+# generated reports (the tool writes these into whatever repo it runs in)
+release-graph.html
+
+# the seeded design canvas is a 2.6 MB build artifact; the .dc.html sources
+# beside it are the real files
+design/release-graph-ui.html
+
+# machine-specific dev helper with absolute paths
+run-dev.sh
+
+.DS_Store
