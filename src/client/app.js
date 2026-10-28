@@ -93,10 +93,12 @@ function ribbon(r) {
   s += `<path d="M${x0},${TRUNK_Y} C${x0 + 8},${TRUNK_Y} ${x0},${RIB_Y} ${x0 + 9},${RIB_Y}" fill="none" stroke="${c}" stroke-width="2" opacity=".75"/>`;
   // the release line itself
   s += `<path class="rib" d="M${x0 + 8},${RIB_Y} L${x1},${RIB_Y}" fill="none" stroke="${c}" stroke-width="3.5" stroke-linecap="round"/>`;
+  // a tag on a maintenance line (release-3.5, v4) is not meant to merge back
+  const stays = (st) => r.onLine && st === 'absent';
   // merge back into the trunk
-  s += arm(x1, RIB_Y, TRUNK_Y, trunkSt, c, 1);
+  if (!stays(trunkSt)) s += arm(x1, RIB_Y, TRUNK_Y, trunkSt, c, 1);
   // and up into the production line
-  if (PROD) s += arm(x1, RIB_Y, PROD_Y, prodSt, c, -1);
+  if (PROD && !stays(prodSt)) s += arm(x1, RIB_Y, PROD_Y, prodSt, c, -1);
   // the tag itself
   s += `<path d="M${x1},${RIB_Y - 4.5} L${x1 + 4.5},${RIB_Y} L${x1},${RIB_Y + 4.5} L${x1 - 4.5},${RIB_Y} Z" fill="${c}" stroke="var(--panel)" stroke-width="1"/>`;
   // clear of both merge arms and their warning glyphs

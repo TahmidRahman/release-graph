@@ -1,8 +1,11 @@
 import * as G from './git.js';
 import { buildBitsets, bitOf, marksOn } from './lineage.js';
+import { patchEquivalents } from './patchid.js';
 
 const SEMVER = /^v?(\d+)\.(\d+)(?:\.(\d+))?(?:[-.]([0-9A-Za-z][0-9A-Za-z.-]*))?$/;
 const RELEASE_BRANCH = /^(release|hotfix|support)[/-](.+)$/i;
+// Maintenance lines named for the version alone: v4, v3.1, 1.9.x, stable/5.0.x
+const LINE_BRANCH = /^(?:(?:stable|maint(?:enance)?)[/-])?(v\d+(?:\.\d+)?(?:\.x)?|\d+\.(?:\d+(?:\.x)?|x))$/i;
 const INTEGRATION = ['develop', 'development', 'main', 'master', 'trunk'];
 
 export function parseVersion(name) {
@@ -67,6 +70,23 @@ export function parsePR(commit) {
   return null;
 }
 
+/**
+ * A PR title reduced to what survives a backport: "[release-3.5] fix x (#13003)",
+ * "release-3.5: fix x" and "fix x [backport to v4]" all become "fix x".
+ */
+export function normTitle(s) {
+  return (s || '').toLowerCase()
+    .replace(/\s*\(#\d+\)\s*$/, '')
+    .replace(/^(?:\[[^\]]*\]\s*:?\s*|(?:(?:release|backport)[- ]?)?v?\d+\.\d+(?:\.x)?:\s*|backport:\s*)+/, '')
+    .replace(/\s*[[(](?:backport|cherry[- ]?pick|release|v?\d+\.\d+)[^\])]*[\])]\s*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Too generic to say two commits are the same change.
+const GENERIC_TITLE = /^(?:merge\b|release\b|bump version|chore(?:\([^)]*\))?: (?:release|bump)|v?\d)/;
+const matchableTitle = (t) => t.length >= 15 && !GENERIC_TITLE.test(t);
+
 const SYNC = /^Merge (?:remote-tracking )?branch '[^']+'(?: of \S+)?(?: into \S+)?$/;
 
 /** Every PR number mentioned anywhere in a commit — used for the "landed elsewhere" fallback. */
@@ -128,12 +148,20 @@ export async function build(cwd, opts) {
   const prod = integration.find((n) => /^(main|master|trunk)$/.test(n) && n !== trunk) || null;
 
   // --- release branches ---------------------------------------------------
+  // A branch named for a patch release (release/1.9.7) is git-flow scaffolding
+  // that should merge back; one named for a major or minor (release-3.5,
+  // release/2.1.x, v4) is a maintenance line that lives on beside the trunk.
   const releaseBranches = branches
-    .filter((b) => RELEASE_BRANCH.test(b.name))
     .map((b) => {
       const m = RELEASE_BRANCH.exec(b.name);
-      return { ...b, kind: m[1].toLowerCase(), version: parseVersion(m[2].replace(/^v\.?/i, 'v')) };
-    });
+      const l = m ? null : LINE_BRANCH.exec(b.name);
+      if (!m && !l) return null;
+      const raw = (m ? m[2] : l[1]).replace(/^v\.?/i, 'v');
+      const line = /\.x$/i.test(raw) || /^v?\d+(?:\.\d+)?$/.test(raw);
+      const version = parseVersion(raw.replace(/\.x$/i, '')) || parseVersion(raw.replace(/\.x$/i, '') + '.0');
+      return { ...b, kind: m ? m[1].toLowerCase() : 'line', line, version, label: line ? raw.replace(/^v/i, '') : null };
+    })
+    .filter(Boolean);
 
   // --- tags ---------------------------------------------------------------
   let releases = allTags
@@ -143,6 +171,22 @@ export async function build(cwd, opts) {
   if (opts.tagPattern) {
     const re = new RegExp(opts.tagPattern);
     releases = releases.filter((r) => re.test(r.name));
+  }
+  // Several tags on one commit are one release: prometheus tags every release
+  // twice (v3.15.1 and the Go-module mirror v0.315.1), and an rc often shares
+  // its commit with the final. Keep the final, then the highest version.
+  {
+    const bySha = new Map();
+    for (const r of releases) {
+      const prev = bySha.get(r.sha);
+      if (!prev) { bySha.set(r.sha, r); continue; }
+      const better = (!r.version.pre && prev.version.pre) ||
+        (!!r.version.pre === !!prev.version.pre && compareVersion(r.version, prev.version) > 0);
+      const [keep, drop] = better ? [r, prev] : [prev, r];
+      keep.aliases = [...(keep.aliases || []), drop.name, ...(drop.aliases || [])];
+      bySha.set(r.sha, keep);
+    }
+    releases = [...bySha.values()];
   }
   releases.sort((a, b) => a.date - b.date || compareVersion(a.version, b.version));
   if (opts.limit && releases.length > opts.limit) {
@@ -234,32 +278,69 @@ export async function build(cwd, opts) {
   const marks = [
     ...releases.map((r) => ({ sha: r.sha })),
     ...integration.map((n) => ({ sha: byName.get(n).sha })),
+    ...releaseBranches.map((b) => ({ sha: b.sha })),
   ];
   const bs = buildBitsets(graph, marks);
   const branchBit = (name) => RN + integration.indexOf(name);
+  const lineBits = releaseBranches
+    .map((b, i) => (b.line ? RN + integration.length + i : -1))
+    .filter((b) => b >= 0);
 
-  // Where each PR NUMBER shows up, so a squash or cherry-pick still counts as
-  // the same pull request having arrived.
+  // Where each PR NUMBER and each PR TITLE shows up, so a squash, cherry-pick
+  // or backport still counts as the same change having arrived. `backports` records
+  // which PRs each PR names ("Automated cherry pick of #9297"), title or branch.
   const prBits = new Map();
+  const titleBits = new Map();
+  const backports = new Map();
   {
+    const or = (map, key, words) => {
+      let acc = map.get(key);
+      if (!acc) { acc = new Uint32Array(bs.W); map.set(key, acc); }
+      for (let w = 0; w < bs.W; w++) acc[w] |= words[w];
+    };
     const seen = new Set();
     for (const sha of bs.order) {
+      const c = graph.get(sha);
+      const pr = parsePR(c);
+      if (pr) {
+        for (const m of `${pr.title} ${pr.head || ''}`.matchAll(/(?:#|\bPR |\/pull\/)(\d+)/gi)) {
+          if (+m[1] === pr.number) continue;
+          if (!backports.has(pr.number)) backports.set(pr.number, new Set());
+          backports.get(pr.number).add(+m[1]);
+        }
+      }
       const words = bs.wordsOf(sha);
       if (!words) continue;
       seen.clear();
-      prMentions(graph.get(sha), seen);
-      for (const num of seen) {
-        let acc = prBits.get(num);
-        if (!acc) { acc = new Uint32Array(bs.W); prBits.set(num, acc); }
-        for (let w = 0; w < bs.W; w++) acc[w] |= words[w];
+      prMentions(c, seen);
+      for (const num of seen) or(prBits, num, words);
+      for (const t of new Set([normTitle(c.subject), pr ? normTitle(pr.title) : ''])) {
+        if (matchableTitle(t)) or(titleBits, t, words);
       }
     }
   }
 
-  /** present = the commit itself is in there; equivalent = only its PR number is. */
-  const presence = (sha, prNumber, bit) => {
+  /** The PR plus every PR it backports, following chains of backports. */
+  const sources = (number) => {
+    const out = [number];
+    for (let i = 0; i < out.length && out.length < 16; i++) {
+      for (const n of backports.get(out[i]) || []) if (!out.includes(n)) out.push(n);
+    }
+    return out;
+  };
+
+  /**
+   * present = the commit itself is in there; equivalent = only its PR number
+   * is, or that of a PR it backports, or its title. A backport ("[release-3.5]
+   * backport #13145") is a new PR whose own number never reaches the trunk.
+   */
+  const presence = (sha, numbers, title, bit) => {
     if (bs.has(sha, bit)) return 'merged';
-    const w = prNumber != null ? prBits.get(prNumber) : null;
+    for (const n of numbers) {
+      const w = prBits.get(n);
+      if (w && bitOf(w, bit)) return 'equivalent';
+    }
+    const w = title ? titleBits.get(title) : null;
     if (w && bitOf(w, bit)) return 'equivalent';
     return 'absent';
   };
@@ -279,22 +360,67 @@ export async function build(cwd, opts) {
   // a tag routinely points at a release-prep commit that was never merged
   // anywhere (v1.9.7 here), while the work it names shipped long before. Tag
   // reachability is kept below purely to draw ancestry.
-  const newest = releases[releases.length - 1];
+  //
+  // The frontier is the highest version, not the latest by date: with
+  // maintenance lines a patch to an old line (vitest v4.1.12) routinely ships
+  // minutes after the current one (v5.0.5).
+  const newest = releases.reduce((a, b) => (compareVersion(b.version, a.version) > 0 ? b : a));
   const forward = [
     ...integration.map((n) => ({ label: n, bit: branchBit(n), trunk: n === trunk })),
   ];
 
+  const targetsOf = (rel) => [
+    ...forward,
+    ...(rel !== newest ? [{ label: newest.name, bit: newest.index }] : []),
+  ];
+  const verdictOf = (pr) => {
+    const inTrunk = pr.status[trunk] !== 'absent';
+    const anywhere = Object.values(pr.status).some((v) => v !== 'absent');
+    return inTrunk ? 'carried' : anywhere ? 'drift' : 'lost';
+  };
+
+  for (const rel of releases) {
+    for (const pr of rel.prs) {
+      const numbers = sources(pr.number);
+      const title = normTitle(pr.title);
+      pr.status = {};
+      for (const t of targetsOf(rel)) pr.status[t.label] = presence(pr.sha, numbers, title, t.bit);
+      pr.verdict = verdictOf(pr);
+    }
+  }
+
+  // What is still missing gets one more, costlier look: did the change itself
+  // arrive, under a commit nothing above could tie to it?
+  if (opts.patchId !== false) {
+    if (await G.isPartialClone(cwd, remote)) {
+      notes.push('patch-id matching skipped: partial clone (fetch the blobs, or pass --no-patch-id)');
+    } else {
+      const open = releases.flatMap((rel) => rel.prs.filter((pr) => pr.verdict !== 'carried'));
+      const bits = [...forward.map((f) => f.bit), newest.index];
+      const found = await patchEquivalents(cwd, graph, bs, open, bits,
+        [...integration.map((n) => byName.get(n).ref), newest.sha], opts.since);
+      let resolved = 0;
+      for (const rel of releases) {
+        for (const pr of rel.prs) {
+          const w = found.get(pr);
+          if (!w) continue;
+          const was = pr.verdict;
+          for (const t of targetsOf(rel)) {
+            if (pr.status[t.label] !== 'absent' || !bitOf(w, t.bit)) continue;
+            pr.status[t.label] = 'equivalent';
+            pr.byPatch = true;
+          }
+          pr.verdict = verdictOf(pr);
+          if (pr.verdict !== was) resolved++;
+        }
+      }
+      if (open.length) notes.push(`patch-id matching traced ${resolved} of ${open.length} pull requests nothing else could`);
+    }
+  }
+
   for (const rel of releases) {
     let carried = 0, drift = 0, lost = 0;
-    const ahead = rel !== newest ? newest : null;
     for (const pr of rel.prs) {
-      pr.status = {};
-      for (const f of forward) pr.status[f.label] = presence(pr.sha, pr.number, f.bit);
-      if (ahead) pr.status[ahead.name] = presence(pr.sha, pr.number, ahead.index);
-
-      const inTrunk = pr.status[trunk] !== 'absent';
-      const anywhere = Object.values(pr.status).some((v) => v !== 'absent');
-      pr.verdict = inTrunk ? 'carried' : anywhere ? 'drift' : 'lost';
       if (pr.verdict === 'carried') carried++;
       else if (pr.verdict === 'drift') drift++;
       else lost++;
@@ -304,9 +430,11 @@ export async function build(cwd, opts) {
     rel.lostPRs = lost;
     rel.missingPRs = drift + lost; // what the current renderer colours red
     rel.status = {};
-    for (const name of integration) rel.status[name] = presence(rel.sha, null, branchBit(name));
+    for (const name of integration) rel.status[name] = presence(rel.sha, [], null, branchBit(name));
+    rel.onLine = lineBits.some((b) => bs.has(rel.sha, b));
     // A tag whose own commit went nowhere but whose work did: release-prep noise.
-    rel.tagOnlyDangling = integration.every((n) => rel.status[n] === 'absent') && lost === 0 && rel.prs.length > 0;
+    // A tag that lives on a maintenance line went exactly where it should.
+    rel.tagOnlyDangling = !rel.onLine && integration.every((n) => rel.status[n] === 'absent') && lost === 0 && rel.prs.length > 0;
   }
 
   // --- release branches still carrying unmerged work ----------------------
@@ -322,9 +450,10 @@ export async function build(cwd, opts) {
     return {
       name: b.name,
       kind: b.kind,
+      line: b.line,
       sha: b.sha,
       date: b.date,
-      version: b.version ? versionLabel(b.version) : null,
+      version: b.version ? (b.label || versionLabel(b.version)) : null,
       status: tipIn,
       ahead,
     };
@@ -346,6 +475,7 @@ export async function build(cwd, opts) {
     prod,
     releases: releases.map((r) => ({
       name: r.name,
+      aliases: r.aliases || [],
       version: versionLabel(r.version),
       pre: !!r.version.pre,
       sha: r.sha,
@@ -362,6 +492,7 @@ export async function build(cwd, opts) {
       driftPRs: r.driftPRs,
       lostPRs: r.lostPRs,
       tagOnlyDangling: r.tagOnlyDangling,
+      onLine: r.onLine,
       missingPRs: r.missingPRs,
       parent: r.parentIndex >= 0 ? releases[r.parentIndex].name : null,
       prs: r.prs,
@@ -373,7 +504,7 @@ export async function build(cwd, opts) {
       carried: releases.reduce((n, r) => n + r.carried, 0),
       drift: releases.reduce((n, r) => n + r.driftPRs, 0),
       lost: releases.reduce((n, r) => n + r.lostPRs, 0),
-      newest: releases[releases.length - 1].name,
+      newest: newest.name,
       danglingTags: releases.filter((r) => r.tagOnlyDangling).map((r) => r.name),
     },
     notes,

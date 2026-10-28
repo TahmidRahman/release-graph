@@ -28,6 +28,7 @@ const HELP = `
         --limit <n>        only the newest N releases
         --since <date>     ignore history older than this (e.g. "2 years ago")
         --github           enrich from the GitHub Releases API (GITHUB_TOKEN or gh)
+        --no-patch-id      skip patch-id matching of backports (faster)
         --no-fetch         skip "git fetch --tags"
         --no-open          do not open the result in a browser
     -h, --help             show this
@@ -35,7 +36,8 @@ const HELP = `
 
   Reading the output
     Each release is a coloured ribbon that leaves the trunk and rejoins it.
-    A dashed red end means the release never merged back — hover the ribbon
+    A dashed red end means the release never merged back (tags on maintenance
+    lines such as release-3.5 or v4 are expected not to) — hover the ribbon
     to expand it into the pull requests it shipped, colour-coded by whether
     each one is actually present on every integration branch.
 `;
@@ -51,6 +53,7 @@ function parseArgs(argv) {
     limit: 0,
     since: null,
     github: false,
+    patchId: true,
     fetch: true,
     open: true,
   };
@@ -71,6 +74,7 @@ function parseArgs(argv) {
       case '--limit': o.limit = Number(next()) || 0; break;
       case '--since': o.since = next(); break;
       case '--github': o.github = true; break;
+      case '--no-patch-id': o.patchId = false; break;
       case '--no-fetch': o.fetch = false; break;
       case '--no-open': o.open = false; break;
       case '-h': case '--help': o.help = true; break;

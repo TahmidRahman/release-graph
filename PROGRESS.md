@@ -4,7 +4,7 @@
 (82 tags, 25k commits, git-flow, `release-v*` branches) — 51 releases, 5415 PRs,
 0.7s, 1.28 MB output.
 
-Last session: 2026-09-05 (publish prep).
+Last session: 2026-10-29 (single-branch + maintenance-line repos).
 
 ---
 
@@ -56,6 +56,61 @@ without it the flood visits a parent before one of its children.
 UI: light/blue OpenCRVS theme is now the default in `src/client/styles.css`
 (dark is opt-in via the toggle, no longer system-driven); Poppins + IBM Plex
 Mono load from Google Fonts with a full system fallback stack.
+
+## 2026-10-29 — single default branch + minor-line maintenance repos
+
+opencrvs-core has since dropped `master` (only `develop`, plus `release/X.Y.Z`
+and `release/X.Y.x` lines). Still works: integration = `[develop]`, prod = null,
+the UI draws no prod rail. Also tested against blobless clones of prometheus
+(`release-3.x`), etcd (`release-3.x`, no merge-back) and vitest (`v4`, `v3.1`).
+
+| repo | before | after |
+| --- | --- | --- |
+| prometheus | 348 releases (100 dupes), newest `v0.315.1` | 248, newest `v3.15.1`, 52 lost |
+| etcd | 1089 lost, 8 dangling tags | 528 lost, 0 dangling |
+| vitest | frontier `v4.1.12`, 30 drift, v4.1.x "dangling" | frontier `v5.0.5`, 22 lost |
+| opencrvs-core | 91 lost | 57 lost |
+
+Fixes, all in `src/model.js` unless noted:
+
+1. **Tags sharing a commit are one release** (`aliases`). Prometheus tags every
+   release twice: `v3.15.1` and the Go-module mirror `v0.315.1`.
+2. **Frontier = highest version, not latest date.** vitest shipped v4.1.12
+   13 minutes after v5.0.5. `summary.newest` keeps its name.
+3. **Bare version branches are release lines**: `v4`, `v3.1`, `1.9.x`,
+   `stable/5.0.x` (`LINE_BRANCH`). Branches named for a major/minor (`line: true`)
+   are maintenance lines; `release/1.9.x` no longer parses as `1.9.0-x`.
+4. **Tags on a maintenance line aren't dangling** (`onLine`), draw no red
+   merge-back stub (`app.js`), and lines are left out of the red strip (`render.js`).
+5. **Backports**: a backport PR has its own number, which never reaches the trunk.
+   Now equivalent if (a) a PR it names, followed transitively through the title
+   or source branch (`#N`, `PR N`, `/pull/N`), is present: etcd #9401 → #9297 →
+   #9281; or (b) its `normTitle()` matches a commit or PR title on the target.
+   Sampled verdicts were checked against `git log --grep` on the trunk; all real.
+
+**Patch-id matching** (`src/patchid.js`, same day) runs last, on PRs that are
+still lost or drift. Each one's whole diff (merge vs first parent) and each
+inner commit (`rev-list M^2 ^M^1`) gets a patch-id. A PR counts as equivalent
+at a target where its whole diff matches, or where *every* inner commit does.
+Only target commits touching exactly the same path set are hashed: one
+`--name-only` pass of about 1s. Hashing the whole trunk took 7s (etcd) and
+25s (opencrvs); an author filter barely narrowed it (49s on opencrvs, since
+merge diffs are huge).
+
+| repo | traced by patch-id | lost after | time |
+| --- | --- | --- | --- |
+| opencrvs-core | 16 of 61 | 41 | 1.0s → 6.0s |
+| etcd | 29 of 552 | 501 | 0.7s → 5.6s |
+| prometheus | 4 of 52 | 48 | 0.8s → 3.9s |
+| vitest | 1 of 22 | 21 | 1.0s → 1.4s |
+
+Samples were verified independently (path-limited `git log -p | git patch-id`
+on the trunk), and every one had a real counterpart. Skipped with a note on
+partial clones (`remote.<r>.promisor`), where each diff would fetch blobs
+lazily. The etcd leftovers are genuinely different changes: per-line Go and
+dependency bumps (`go.sum` differs), bundled backports, and typo fixes in code
+`main` has since rewritten. That is the limit of what git history can trace.
+`pr.byPatch` marks matches made this way (JSON only, not shown in the UI).
 
 ## What works
 
@@ -111,14 +166,15 @@ Known gaps, none blocking:
       Still unexercised: the **authenticated** branch (Authorization header never
       sent), the 401/403 error branch, and **pagination past page 1** — both test
       repos have fewer than 100 releases, so the `page` loop has only ever run once.
-- [ ] Only two repo shapes tested: opencrvs-core (git-flow, develop+master+`release-*`)
-      and chalk (trunk-based, `main` only). Untested: Bitbucket subjects, rebase-merge
-      repos, monorepos with scoped tags (`pkg@1.2.3` — `parseVersion` rejects those).
-- [ ] Equivalence matches by PR **number**, not patch-id. `git cherry` /
-      `git log --cherry-mark` do this better; switching would catch rebased and
-      cherry-picked commits this misses. Best single accuracy improvement available.
-- [ ] Tests cover the pure functions and the bitset only (6 tests). No fixture repo
-      exercising ownership/verdicts end to end — worth adding given the verdict
+- [ ] Tested shapes: git-flow with and without master (opencrvs-core), trunk-only
+      (chalk), minor/major maintenance lines (prometheus, etcd, vitest). Untested:
+      Bitbucket subjects, rebase-merge repos, monorepos with scoped tags
+      (`pkg@1.2.3` — `parseVersion` rejects those), non-prefixed lines like `19.0.x`
+      on a huge repo (angular).
+- [x] Patch-id equivalence added 2026-10-29 (see above). Possible next step:
+      surface `byPatch` in the PR detail panel.
+- [ ] Tests cover the pure functions, the bitset and patch-id matching (one
+      fixture repo, 8 tests). No fixture exercising ownership/verdicts end to end — worth adding given the verdict
       semantics changed three times.
 
 ## How to run it

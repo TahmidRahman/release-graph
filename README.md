@@ -77,6 +77,7 @@ the view follows it as you scroll. `/` focuses search, `Esc` closes the panel.
     --limit <n>        only the newest N releases
     --since <date>     ignore history older than this (e.g. "2 years ago")
     --github           enrich from the GitHub Releases API (GITHUB_TOKEN or gh)
+    --no-patch-id      skip patch-id matching of backports (faster)
     --no-fetch         skip "git fetch --tags"
     --no-open          do not open the result in a browser
 ```
@@ -89,19 +90,38 @@ you would rather build your own report or gate CI on it.
 - **Releases** are semver tags (`v1.8.0`, `1.8.0`, `1.8.0-rc.1`), ordered by the
   date of the *commit they point at*, not by version number — so parallel
   maintenance lines (1.9.16 released after 2.0.0) stay in honest order.
+  Several tags on one commit (an rc and its final, or prometheus's `v3.15.1` +
+  `v0.315.1` Go-module mirror) are one release.
+- **"Newest"** — the release every PR is checked against — is the highest
+  version, not the latest by date: a patch to an old line often ships minutes
+  after the current one.
 - **Pull requests** come from commit subjects, entirely offline: GitHub merge
   commits (`Merge pull request #123 from …`), GitHub squash merges
   (`title (#123)`), and Bitbucket (`Merged in x (pull request #123)`).
-- **Presence** is exact commit reachability first; failing that, the same PR
-  *number* appearing on the target counts as an equivalent (a squash or a
-  cherry-pick).
+- **Presence** is exact commit reachability first; failing that, any of these
+  counts as an equivalent: the same PR *number* on the target (a squash or a
+  cherry-pick); the number of a PR it backports, followed through chains of
+  backports (`Automated cherry pick of #9297`, from the title or the source
+  branch); or the same *title* once backport markers such as `[release-3.5]`,
+  `backport-3.5:` or `[backport to v4]` are stripped.
+- **Patch-ids** are the last resort for whatever is still missing: a PR has
+  arrived if its whole diff, or every commit it brought in, has the same
+  `git patch-id` as a commit on the target — what `git cherry` does. Only
+  target commits touching exactly the same paths are hashed, which keeps this to
+  a few seconds. Skipped on partial (blobless) clones; `--no-patch-id` skips it.
 - **A tag is not its content.** Release tags routinely point at a version-bump
   commit that was never merged anywhere, while the work they name shipped long
   before. Those are reported as release-prep noise and excluded from the
   verdicts rather than raised as alarms.
 - **Integration branches** are auto-detected from `develop`, `development`,
-  `main`, `master`, `trunk`, plus the remote's HEAD. Release branches match
-  `release/*`, `release-*`, `hotfix/*`, `hotfix-*`, `support/*`.
+  `main`, `master`, `trunk`, plus the remote's HEAD — a lone default branch
+  is enough. Release branches match `release/*`, `release-*`, `hotfix/*`,
+  `hotfix-*`, `support/*`, and bare version lines (`v4`, `v3.1`, `1.9.x`,
+  `stable/5.0.x`).
+- **Maintenance lines** — release branches named for a major or minor
+  (`release-3.5`, `release/2.1.x`, `v4`) rather than a patch — live beside the
+  trunk by design. Their tags are not flagged for never merging back, and the
+  lines are left out of the "unmerged release branches" strip.
 
 ## Limits worth knowing
 
@@ -109,10 +129,14 @@ you would rather build your own report or gate CI on it.
   proves a commit is absent. It cannot tell absence caused by a dropped
   backport from absence caused by work that was reimplemented, superseded or
   deliberately reverted. Read the list before acting on it.
-- **Equivalence is matched by PR number, not by patch content.** Git's own
-  `git cherry` / `git log --cherry-mark` use patch-ids and will catch
-  rebased or cherry-picked commits that this misses. If your team rewrites
-  commit subjects on backport, expect false "absent" results.
+- **A backport that had to change the code still reads as absent.** Patch-ids
+  match only identical diffs, so a backport that resolved a conflict, bumped a
+  different dependency version, or bundled several fixes cannot be tied to its
+  original. On etcd that is most of the ~500 remaining "not in newest"
+  results, alongside fixes that only ever belonged on the old line. Title
+  matching ignores short or generic titles (`bump version`, `release …`).
+- **Patch-id matching costs a few seconds** on large repos (opencrvs-core
+  1s → 6s); pass `--no-patch-id` when iterating.
 - **PR detection depends on your merge style.** Repos that rebase-merge with
   no PR reference in the subject will show releases with commits but no pull
   requests. The commit counts stay correct.
@@ -123,8 +147,10 @@ you would rather build your own report or gate CI on it.
   `GITHUB_TOKEN`, or be logged into `gh`, for private repos or a higher rate
   limit. Releases with more than 100 published entries are untested.
 - Needs a full clone. On a shallow one, pass `--since` or fetch more history.
-- Tested against git-flow (`develop` + `master` + `release-*`) and trunk-based
-  (`main` only) repositories.
+- Tested against git-flow with a single default branch (opencrvs-core:
+  `develop` + `release/*` + `release/2.1.x` lines), trunk-based (chalk), and
+  minor-line maintenance (prometheus `release-3.x`, etcd `release-3.x`, vitest
+  `v4`/`v3.1`).
 
 ## Requirements
 

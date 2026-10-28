@@ -9,7 +9,8 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 const day = (t) => new Date(t * 1000).toISOString().slice(0, 10);
 
 function branchBar(model) {
-  const bad = model.branches.filter((b) => model.integration.some((n) => b.status[n] === 'absent') && b.ahead > 0);
+  // maintenance lines (release-3.5, v4) live beside the trunk by design
+  const bad = model.branches.filter((b) => !b.line && model.integration.some((n) => b.status[n] === 'absent') && b.ahead > 0);
   if (!bad.length) return '';
   const chips = bad.slice(0, 40).map((b) => {
     const where = model.integration.filter((n) => b.status[n] === 'absent').join(', ');

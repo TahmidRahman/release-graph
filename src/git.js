@@ -159,3 +159,73 @@ export async function commitGraph(cwd, refs, { since } = {}) {
   }
   return map;
 }
+
+/**
+ * Stable patch-ids for `shas`, as a Map sha -> patch-id. Two commits with the
+ * same patch-id make the same change, whatever their history: this is what
+ * `git cherry` uses. A merge is diffed against its first parent, so its id is
+ * that of the whole pull request it brought in.
+ */
+export function patchIds(cwd, shas) {
+  return new Promise((resolve, reject) => {
+    const ids = new Map();
+    if (!shas.length) return resolve(ids);
+    const log = spawn('git', [
+      'log', '--no-walk=unsorted', '--stdin', '-p', '--diff-merges=first-parent', '--no-renames',
+      '--no-ext-diff', '--no-textconv', '--no-color', '--no-show-signature', '--format=commit %H',
+    ], { cwd, stdio: ['pipe', 'pipe', 'ignore'] });
+    const pid = spawn('git', ['patch-id', '--stable'], { cwd, stdio: ['pipe', 'pipe', 'ignore'] });
+    log.on('error', reject);
+    pid.on('error', reject);
+    log.stdin.on('error', () => {}); // git exiting early must not crash us
+    log.stdout.pipe(pid.stdin);
+    const out = [];
+    pid.stdout.on('data', (c) => out.push(c));
+    pid.on('close', () => {
+      for (const line of Buffer.concat(out).toString('utf8').split('\n')) {
+        const [id, sha] = line.split(' ');
+        if (id && sha) ids.set(sha, id);
+      }
+      resolve(ids);
+    });
+    log.stdin.end(shas.join('\n') + '\n');
+  });
+}
+
+/**
+ * The set of paths each commit touches, as a Map sha -> sorted paths joined by
+ * newlines — comparing trees only, so far cheaper than a diff. Walks `refs`, or
+ * lists exactly `shas`. A merge is compared with its first parent.
+ */
+export async function changedPaths(cwd, { refs = [], shas = null, since = null }) {
+  const args = ['log', '--name-only', '--diff-merges=first-parent', '--no-renames', '--no-show-signature', '--format=commit %H'];
+  let out = '';
+  if (shas) {
+    // in chunks, to stay well inside the argv limit
+    for (let i = 0; i < shas.length; i += 1000) {
+      out += await git(cwd, [...args, '--no-walk=unsorted', ...shas.slice(i, i + 1000), '--']);
+    }
+  } else {
+    if (since) args.push(`--since=${since}`);
+    out = await git(cwd, [...args, ...refs, '--']);
+  }
+  const paths = new Map();
+  let sha = null;
+  let files = [];
+  const flush = () => { if (sha) paths.set(sha, files.sort().join('\n')); };
+  for (const line of out.split('\n')) {
+    if (line.startsWith('commit ')) {
+      flush();
+      sha = line.slice(7);
+      files = [];
+    } else if (line) files.push(line);
+  }
+  flush();
+  return paths;
+}
+
+/** A partial (blobless) clone would fetch every blob a diff touches, one by one. */
+export async function isPartialClone(cwd, remote) {
+  const v = await git(cwd, ['config', '--get', `remote.${remote}.promisor`], { allowFail: true });
+  return v.trim() === 'true';
+}

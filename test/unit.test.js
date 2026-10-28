@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseVersion, compareVersion, versionLabel, parsePR } from '../src/model.js';
+import { parseVersion, compareVersion, versionLabel, parsePR, normTitle } from '../src/model.js';
 import { buildBitsets } from '../src/lineage.js';
 
 test('parseVersion accepts the shapes real repos tag with', () => {
@@ -64,4 +64,44 @@ test('buildBitsets handles more than 32 marks', () => {
   const bs = buildBitsets(g, marks);
   assert.ok(bs.has('a', 39), 'bit 39 crosses into the second word');
   assert.ok(bs.has('a', 0));
+});
+
+test('normTitle strips backport markers so a backport matches its original', () => {
+  assert.equal(normTitle('[release-3.6] Fix race in read index (#21378)'), 'fix race in read index');
+  assert.equal(normTitle('[3.5] Fix ts with no trailing zeros'), 'fix ts with no trailing zeros');
+  assert.equal(normTitle('backport-3.5: server: skip sprintf'), 'server: skip sprintf');
+  assert.equal(normTitle('release-3.5: fix x'), 'fix x');
+  assert.equal(normTitle('fix(mocker): hoist vi.mock() [backport to v4]'), 'fix(mocker): hoist vi.mock()');
+  assert.equal(normTitle('Update dep: yaml v2.4.0 [release 3.5]'), 'update dep: yaml v2.4.0');
+  assert.equal(normTitle('fix: keep [brackets] mid-title'), 'fix: keep [brackets] mid-title');
+});
+
+test('patchEquivalents finds a backport by its content alone', async () => {
+  const { mkdtempSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { execFileSync } = await import('node:child_process');
+  const { patchEquivalents } = await import('../src/patchid.js');
+  const { commitGraph } = await import('../src/git.js');
+
+  const dir = mkdtempSync(join(tmpdir(), 'rg-patchid-'));
+  const git = (...a) => execFileSync('git', a, { cwd: dir, encoding: 'utf8' }).trim();
+  const commit = (file, body, msg) => { writeFileSync(join(dir, file), body); git('add', file); git('commit', '-qm', msg); return git('rev-parse', 'HEAD'); };
+  git('init', '-q', '-b', 'main');
+  git('config', 'user.email', 't@t'); git('config', 'user.name', 't');
+  commit('a.txt', 'one\ntwo\nthree\n', 'base');
+  git('branch', 'release-1.0');
+  const original = commit('a.txt', 'one\nTWO\nthree\n', 'fix two (#10)');
+  git('checkout', '-q', 'release-1.0');
+  // reworded, no PR number in common: nothing but the content ties it to #10
+  const backport = commit('a.txt', 'one\nTWO\nthree\n', 'Port the 2 fix to the old line (#11)');
+  const unrelated = commit('b.txt', 'only here\n', 'line-only tweak (#12)');
+
+  const graph = await commitGraph(dir, ['main', 'release-1.0']);
+  const bs = buildBitsets(graph, [{ sha: git('rev-parse', 'main') }]);
+  const prs = [{ sha: backport, style: 'squash' }, { sha: unrelated, style: 'squash' }];
+  const found = await patchEquivalents(dir, graph, bs, prs, [0], ['main'], null);
+  assert.ok(found.has(prs[0]), 'the reworded backport is found on main');
+  assert.ok(!found.has(prs[1]), 'a line-only change is not');
+  assert.ok(bs.has(original, 0));
 });
