@@ -55,15 +55,15 @@ ${read('styles.css')}
 <header>
   <div class="brand">
     <h1>${repo.web ? `<a href="${esc(repo.web)}" target="_blank" rel="noreferrer">${esc(repo.name)}</a>` : esc(repo.name)}</h1>
-    <span class="meta">${sum.releases} releases · ${sum.prs} PRs · <span id="count"></span> shown · <span style="color:var(--ok)">${sum.carried} carried forward</span>${sum.drift ? ` · <span style="color:var(--warn)">${sum.drift} off ${esc(model.trunk)}</span>` : ''}${sum.lost ? ` · <span style="color:var(--bad)">${sum.lost} not in ${esc(sum.newest)}</span>` : ''}</span>
+    <span class="meta"><span>${sum.releases} releases</span> · <span>${sum.prs} PRs</span> · <span><span id="count"></span> shown</span> · <span style="color:var(--ok)">${sum.carried} carried forward</span>${sum.drift ? ` · <span style="color:var(--warn)">${sum.drift} drift</span>` : ''}${sum.lost ? ` · <span style="color:var(--bad)">${sum.lost} lost</span>` : ''}</span>
   </div>
   <div class="legend">
     <span><i style="background:var(--ok)"></i>carried forward</span>
-    <span><i style="background:var(--warn)"></i>shipped, not on ${esc(model.trunk)}</span>
-    <span><i style="background:var(--bad)"></i>not in ${esc(sum.newest)} &mdash; review</span>
+    <span><i style="background:var(--warn)"></i><b>drift</b>: shipped, not on ${esc(model.trunk)}</span>
+    <span><i style="background:var(--bad)"></i><b>lost</b>: not in ${esc(sum.newest)} &mdash; review</span>
   </div>
   <div class="ctl">
-    <input type="search" id="q" placeholder="release, #PR, title, author  (/)" spellcheck="false">
+    <input type="search" id="q" placeholder="release, #PR, title, author" title="search · press / to focus" spellcheck="false">
     <label class="tog"><input type="checkbox" id="f-prob">problems only</label>
     <label class="tog"><input type="checkbox" id="f-pre" checked>prereleases</label>
     <button id="zout" title="zoom out">&minus;</button>

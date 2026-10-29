@@ -6,7 +6,8 @@
   --ok: #0F7B62; --warn: #A96411; --bad: #D24436;
   --accent: #0058E0; --sel: #F2F0F9;
   --l: 42%;
-  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  /* fallbacks per OS: with Google Fonts blocked, Windows would otherwise land on Courier New */
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Cascadia Mono", "Liberation Mono", monospace;
   --sans: Poppins, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --gutter: 216px;
   color-scheme: light;
@@ -36,11 +37,12 @@ header {
   display: flex; align-items: center; gap: 16px; flex-wrap: wrap; flex: none;
   background: var(--panel);
 }
-.brand { display: flex; align-items: baseline; gap: 9px; margin-right: auto; min-width: 0; }
+.brand { display: flex; align-items: baseline; gap: 2px 9px; margin-right: auto; min-width: 0; flex-wrap: wrap; }
 .brand h1 { font: 600 14px/1.2 var(--mono); margin: 0; letter-spacing: -.01em; white-space: nowrap; }
 .brand a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
 .brand a:hover { border-color: var(--accent); color: var(--accent); }
-.brand .meta { color: var(--ink-3); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand .meta { color: var(--ink-3); font-size: 11.5px; }
+.brand .meta > span { white-space: nowrap; }
 
 .ctl { display: flex; align-items: center; gap: 7px; }
 input[type="search"] {
@@ -57,7 +59,9 @@ button:hover, label.tog:hover { color: var(--ink); border-color: var(--ink-3); }
 label.tog input { margin: 0 5px 0 0; vertical-align: -1px; accent-color: var(--accent); }
 label.tog:has(input:checked) { color: var(--ink); border-color: var(--accent); background: var(--sel); }
 
-.legend { display: flex; gap: 12px; align-items: center; color: var(--ink-3); font-size: 11.5px; }
+.legend { display: flex; gap: 4px 12px; align-items: center; color: var(--ink-3); font-size: 11.5px; flex-wrap: wrap; }
+.legend span { white-space: nowrap; }
+.legend b { font-weight: 600; }
 .legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: 0; }
 
 /* ---------- axis ---------- */
@@ -94,11 +98,20 @@ label.tog:has(input:checked) { color: var(--ink); border-color: var(--accent); b
 .row.dim { opacity: .28; }
 .rowlabel .v {
   font: 600 12.5px var(--mono); letter-spacing: -.02em;
-  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap; min-width: 0;
 }
+.rowlabel .v .nm { overflow: hidden; text-overflow: ellipsis; min-width: 3ch; }
+/* problem counts sit beside the name, so the line below never has to hold them */
+.rowlabel .v .ct { margin-left: auto; display: flex; gap: 3px; flex: none; }
+.ct i {
+  font: 600 10px/15px var(--sans); font-style: normal; letter-spacing: 0;
+  padding: 0 5px; border-radius: 4px; border: 1px solid;
+}
+.ct i.lost { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); background: color-mix(in srgb, var(--bad) 8%, transparent); }
+.ct i.drift { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); background: color-mix(in srgb, var(--warn) 8%, transparent); }
+.ct i.quiet { color: var(--ink-3); border-color: var(--line); font-weight: 400; }
 .rowlabel .v b { width: 7px; height: 7px; border-radius: 2px; flex: none; }
 .rowlabel .s { font-size: 10.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rowlabel .flag { color: var(--bad); font-weight: 600; }
 .row svg { display: block; }
 
 /* ---------- tooltip ---------- */
@@ -119,8 +132,8 @@ label.tog:has(input:checked) { color: var(--ink); border-color: var(--accent); b
   display: none; flex-direction: column; min-height: 0;
 }
 #panel.on { display: flex; }
-#panel .ph { padding: 14px 16px 12px; border-bottom: 1px solid var(--line); }
-#panel .ph h2 { margin: 0 0 3px; font: 600 16px var(--mono); letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; }
+#panel .ph { padding: 14px 40px 12px 16px; border-bottom: 1px solid var(--line); }
+#panel .ph h2 { margin: 0 0 3px; font: 600 16px var(--mono); letter-spacing: -.02em; display: flex; align-items: center; gap: 8px; overflow-wrap: anywhere; }
 #panel .ph h2 b { width: 10px; height: 10px; border-radius: 3px; flex: none; }
 #panel .ph .sub { color: var(--ink-3); font-size: 11.5px; }
 #panel .close { position: absolute; top: 10px; right: 12px; border: 0; background: none; font-size: 16px; color: var(--ink-3); padding: 2px 6px; }
@@ -130,6 +143,7 @@ label.tog:has(input:checked) { color: var(--ink); border-color: var(--accent); b
 .pill.merged { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
 .pill.equivalent { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
 .pill.absent { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: color-mix(in srgb, var(--bad) 8%, transparent); }
+.pill.line { color: var(--ink-2); }
 .sect { padding: 12px 16px 4px; font: 10.5px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 .prlist { list-style: none; margin: 0; padding: 0; }
 .prlist li { display: flex; gap: 8px; padding: 6px 16px; border-bottom: 1px solid var(--line-soft); align-items: baseline; }
@@ -181,5 +195,18 @@ code { font: 11px var(--mono); background: var(--sel); padding: 1px 4px; border-
 .prlist li.drift .ti { color: var(--warn); }
 .prlist li.lost  .ti { color: var(--bad); }
 .prlist li.carried .ti { color: inherit; }
-.rowlabel .drift { color: var(--warn); font-weight: 600; }
-.rowlabel .quiet { color: var(--ink-3); }
+
+/* ---------- narrow screens ---------- */
+/* Beside the chart the panel would leave the timeline a sliver; float it over. */
+@media (max-width: 1100px) {
+  #chart { position: relative; }
+  #panel { position: absolute; top: 0; right: 0; bottom: 0; z-index: 30; width: min(400px, 88vw); box-shadow: -12px 0 28px rgba(0,0,0,.16); }
+}
+@media (max-width: 720px) {
+  :root { --gutter: 156px; }
+  header { padding: 8px 10px; gap: 8px 12px; }
+  input[type="search"] { width: 150px; }
+  .ctl { flex-wrap: wrap; }
+  /* the name matters more than the word: the badge colour already says lost or drift */
+  .ct i span { display: none; }
+}

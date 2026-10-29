@@ -9,6 +9,8 @@ const PROD = D.prod;
 
 const MAX_LANES = 12;
 const ROW_H = 44, PROD_Y = 11, RIB_Y = 22, TRUNK_Y = 34, PAD = 44, MIN_W = 13, LANE_H = 19;
+// the newest tag still needs room on its right for its merge arm and label
+const PAD_R = 110;
 const $ = (s, r = document) => r.querySelector(s);
 const el = (t, c) => { const e = document.createElement(t); if (c) e.className = c; return e; };
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -24,6 +26,11 @@ const color = (r) => COLOR.get(r.name);
    · lost = in no integration branch and not in the newest release. */
 const VERDICT = { carried: 'var(--ok)', drift: 'var(--warn)', lost: 'var(--bad)' };
 const VLABEL = { carried: 'carried forward', drift: 'not on ' + TRUNK, lost: 'not in ' + NEWEST };
+/* Every target a PR was checked against: the integration branches and the newest release. */
+const foundOn = (p) => Object.keys(p.status || {}).filter((k) => p.status[k] !== 'absent');
+/* A tag on a maintenance line is not supposed to reach the trunk: say so, don't alarm. */
+const tagStatus = (r, b) => (r.onLine && r.status[b] === 'absent' ? 'line' : r.status[b]);
+const TAG_LABEL = { merged: 'merged', equivalent: 'equivalent', absent: 'absent', line: 'stays on its maintenance line' };
 const vOf = (p) => p.verdict || 'carried';
 const relVerdict = (r) => (r.lostPRs ? 'lost' : r.driftPRs ? 'drift' : 'carried');
 const worst = (st) => BR.some((b) => st[b] === 'absent') ? 'absent'
@@ -40,15 +47,15 @@ const SPAN = Math.max(T1 - T0, 86400);
 let ppu = 1, contentW = 1000;
 
 function rescale() {
-  const avail = Math.max($('#track').clientWidth - PAD * 2, 320);
+  const avail = Math.max($('#track').clientWidth - PAD - PAD_R, 320);
   const base = avail / SPAN;
   // widen until a typical release is legible, then apply the user's zoom
   const durs = REL.map((r) => r.date - r.startDate).filter((d) => d > 0).sort((a, b) => a - b);
   const med = durs.length ? durs[Math.floor(durs.length / 2)] : SPAN / REL.length;
   const wanted = med > 0 ? 52 / med : base;
   ppu = Math.max(base, Math.min(wanted, base * 60)) * S.zoom;
-  contentW = Math.min(SPAN * ppu + PAD * 2, 200000);
-  if (contentW < avail + PAD * 2) contentW = avail + PAD * 2;
+  contentW = Math.min(SPAN * ppu + PAD + PAD_R, 200000);
+  if (contentW < avail + PAD + PAD_R) contentW = avail + PAD + PAD_R;
 }
 const X = (t) => PAD + (t - T0) * ppu;
 
@@ -195,12 +202,12 @@ function label(r, i) {
   d.dataset.rel = r.name;
   d.style.top = i * ROW_H + 'px';
   d.style.height = ROW_H + 'px';
-  d.innerHTML = `<span class="v"><b style="background:${color(r)}"></b>${esc(r.name)}</span>`
-    + `<span class="s">${day(r.date)} · ${r.prs.length} PR${r.prs.length === 1 ? '' : 's'}`
-    + (r.lostPRs ? ` · <span class="flag">${r.lostPRs} not in ${esc(NEWEST)}</span>` : '')
-    + (r.driftPRs ? ` · <span class="drift">${r.driftPRs} off ${esc(TRUNK)}</span>` : '')
-    + (r.tagOnlyDangling ? ` · <span class="quiet">tag only</span>` : '')
-    + `</span>`;
+  const ct = (r.lostPRs ? `<i class="lost" title="${r.lostPRs} not in ${esc(NEWEST)}">${r.lostPRs}<span> lost</span></i>` : '')
+    + (r.driftPRs ? `<i class="drift" title="${r.driftPRs} shipped but not on ${esc(TRUNK)}">${r.driftPRs}<span> drift</span></i>` : '')
+    + (r.tagOnlyDangling ? `<i class="quiet" title="the tag points at a release-prep commit that was never merged; its work was">tag only</i>` : '');
+  d.innerHTML = `<span class="v"><b style="background:${color(r)}"></b><span class="nm">${esc(r.name)}</span>`
+    + (ct ? `<span class="ct">${ct}</span>` : '') + `</span>`
+    + `<span class="s">${day(r.date)} · ${r.prs.length} PR${r.prs.length === 1 ? '' : 's'}</span>`;
   return d;
 }
 
@@ -241,10 +248,9 @@ function invalidate() {
   for (const n of pool.values()) { n.row.remove(); n.lab.remove(); }
   pool.clear();
   const t = track();
-  spacer().style.width = contentW + 'px';
+  sizeWidth();
   spacer().style.height = view.length * ROW_H + 'px';
   gut().style.height = view.length * ROW_H + 'px';
-  $('#axis').style.width = contentW + 'px';
   // Filtering changes the row count, so the old scrollTop can point past the end.
   // Clamp before deciding which rows are on screen, or the window renders empty.
   const maxTop = Math.max(0, view.length * ROW_H - t.clientHeight);
@@ -302,7 +308,8 @@ function showTip(html, ev, above) {
   t.style.top = y + 'px';
 }
 const hideTip = () => tip().classList.remove('on');
-const stPills = (st) => BR.map((b) => `<span class="pill ${st[b]}">${esc(b)} · ${st[b]}</span>`).join('');
+const stPills = (st) => Object.keys(st).map((b) => `<span class="pill ${st[b]}">${esc(b)} · ${st[b]}</span>`).join('');
+const tagPills = (r) => BR.map((b) => { const s = tagStatus(r, b); return `<span class="pill ${s}">${esc(b)} · ${TAG_LABEL[s]}</span>`; }).join('');
 
 /* -------------------------------------------------------------------- panel */
 const RISK = { lost: 0, drift: 1, carried: 2 };
@@ -318,7 +325,7 @@ function openPanel(name) {
   const tagUrl = web ? `${web}/releases/tag/${encodeURIComponent(r.name)}` : null;
   const gh = r.github;
   $('#panel .body').innerHTML =
-    `<div class="sect">merge status</div><div style="padding:0 16px"><div class="pills">${stPills(r.status)}</div></div>`
+    `<div class="sect">merge status</div><div style="padding:0 16px"><div class="pills">${tagPills(r)}</div></div>`
     + (gh && gh.body ? `<div class="sect">release notes</div><div class="notes">${esc(gh.body.slice(0, 1200))}</div>` : '')
     + `<div class="sect">${r.prs.length} pull request${r.prs.length === 1 ? '' : 's'}`
       + (r.lostPRs ? ` · <span style="color:var(--bad)">${r.lostPRs} not in ${esc(NEWEST)}</span>` : '')
@@ -331,7 +338,7 @@ function openPanel(name) {
           return `<li class="${st}"><span class="dot" style="background:${VERDICT[st]}"></span>`
             + (u ? `<a class="num" href="${u}" target="_blank" rel="noreferrer">#${x.number}</a>` : `<span class="num">#${x.number}</span>`)
             + `<span class="ti">${esc(x.title)}<small>${esc(x.author)} · ${day(x.date)}`
-            + (st !== 'carried' ? ` · <span style="color:${VERDICT[st]}">${esc(VLABEL[st])}${st === 'lost' ? '' : ' — on ' + BR.filter((b) => x.status[b] !== 'absent').join(', ')}</span>` : '')
+            + (st !== 'carried' ? ` · <span style="color:${VERDICT[st]}">${esc(VLABEL[st])}${foundOn(x).length ? ' — on ' + esc(foundOn(x).join(', ')) : ''}</span>` : '')
             + `</small></span></li>`;
         }).join('')}</ul>`
       : `<div class="empty">No pull requests detected.<br><small>This release's ${r.commits} commits use neither merge-commit nor squash-merge PR subjects.</small></div>`);
@@ -342,9 +349,10 @@ function openPanel(name) {
     + (r.tagger ? ` · tagged by ${esc(r.tagger)}` : '') + `</div>`
     + (gh && gh.title ? `<div class="sub" style="margin-top:4px;color:var(--ink-2)">${esc(gh.title)}</div>` : '')
     + `<button class="close" title="close (esc)">&times;</button>`;
+  sizeWidth();
   renderWindow();
 }
-function closePanel() { S.sel = null; $('#panel').classList.remove('on'); renderWindow(); }
+function closePanel() { S.sel = null; $('#panel').classList.remove('on'); sizeWidth(); renderWindow(); }
 
 /* --------------------------------------------------------------------- wire */
 /* Rows are chronological and X is time, so the content runs on a diagonal:
@@ -365,8 +373,21 @@ function follow(force) {
   const r = view[i];
   if (!r) return;
   const [x0, x1] = bounds(r);
-  const l = t.scrollLeft, w = t.clientWidth;
+  const l = t.scrollLeft, w = visibleW();
   if (force || x1 < l + 40 || x0 > l + w - 40) t.scrollLeft = Math.max(0, x1 - w * 0.68);
+}
+
+/* How much of the track the panel hides: on narrow screens it floats over the chart. */
+function covered() {
+  const p = $('#panel');
+  return p.classList.contains('on') && getComputedStyle(p).position === 'absolute' ? p.offsetWidth : 0;
+}
+const visibleW = () => Math.max(120, track().clientWidth - covered());
+/* Extra room past the newest release, so it can be scrolled out from under a floating panel. */
+function sizeWidth() {
+  const w = contentW + covered() + 'px';
+  spacer().style.width = w;
+  $('#axis').style.width = w;
 }
 
 /* Bring a release's ribbon on screen. Call this after the panel is shown:
@@ -375,15 +396,18 @@ function reveal(name) {
   const r = REL.find((x) => x.name === name);
   if (!r) return;
   const t = track();
-  const w = t.clientWidth;
-  const [x0, x1] = bounds(r);
-  if (x1 < t.scrollLeft + 40 || x0 > t.scrollLeft + w - 40) {
+  const w = visibleW();
+  const [, x1] = bounds(r);
+  // the tag end is what matters: a long ribbon can be on screen with its tag hidden
+  if (x1 < t.scrollLeft + 40 || x1 > t.scrollLeft + w - 40) {
     holdFollow = Date.now() + 1000;
     t.scrollTo({ left: Math.max(0, x1 - w * 0.68), behavior: 'smooth' });
   }
 }
 
 function boot() {
+  // without --prerelease the model holds none, and the toggle would do nothing
+  if (!REL.some((r) => r.pre)) $('#f-pre').closest('label').style.display = 'none';
   rescale(); refilter(); invalidate();
   // open on the newest releases — that is what a maintainer is here to check
   track().scrollTop = view.length * ROW_H;
@@ -444,10 +468,9 @@ function boot() {
   $('#zin').addEventListener('click', () => { S.zoom = Math.min(S.zoom * 1.6, 40); rescale(); invalidate(); });
   $('#zout').addEventListener('click', () => { S.zoom = Math.max(S.zoom / 1.6, 1); rescale(); invalidate(); });
   $('#theme').addEventListener('click', () => {
-    const cur = document.documentElement.getAttribute('data-theme');
-    const next = cur === 'dark' ? 'light' : cur === 'light' ? '' : 'dark';
-    if (next) document.documentElement.setAttribute('data-theme', next);
-    else document.documentElement.removeAttribute('data-theme');
+    // light is the default, so a third "system" state would look identical to it
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
   });
   document.addEventListener('click', (e) => { if (e.target.closest('.close')) closePanel(); });
   document.addEventListener('keydown', (e) => {

@@ -147,6 +147,27 @@ exactly. Worth re-running that check after any change to `model.js`.
    synchronous now (reading `clientWidth` forces the reflow we needed).
 9. `backdrop-filter` on a full-width overlay froze the compositor; the overlay
    is now scoped to the release's own span with a solid background.
+10. Row sub-labels ("date · N PRs · 3 not in v2.1.2 · 1 off develop") overflowed
+    the 216px gutter and were cut with an ellipsis, worst on Windows with Google
+    Fonts blocked (the mono stack had no Windows font, so it fell to Courier New).
+    Counts are now `3 lost` / `1 drift` badges beside the name, numbers only
+    under 720px; Consolas / Cascadia Mono / Liberation Mono are in the stack.
+11. Under 1100px the 400px panel left the chart a ~200px sliver; it now floats
+    over the chart, and the track gains its width as scroll room so `reveal()`
+    can pull the newest release out from under it. `reveal()` checks the tag end,
+    not the whole ribbon: a long ribbon could be "visible" with its tag hidden.
+12. The newest tag's label and merge arm were clipped at the right edge
+    (44px pad); the right pad is now `PAD_R` = 110.
+13. A drift PR's panel line read "not on main — on" with nothing after it: it
+    only listed integration branches, not the newest release where it was.
+14. Maintenance-line tags showed a red `main · absent` pill in the panel,
+    contradicting the ribbon; now a neutral "stays on its maintenance line".
+15. The theme toggle had a dead third state (system = light); the prereleases
+    toggle showed when the model held no prereleases.
+
+To test responsiveness, frame the report at fixed widths in a same-origin iframe
+(the browser window can't always be resized). For the office-PC case, remove the
+Google Fonts `<link>` and strip the Mac fonts from `--mono`.
 
 ## Next steps
 
