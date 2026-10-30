@@ -4,7 +4,7 @@
 (82 tags, 25k commits, git-flow, `release-v*` branches) — 51 releases, 5415 PRs,
 0.7s, 1.28 MB output.
 
-Last session: 2026-10-29 (single-branch + maintenance-line repos).
+Last session: 2026-10-30 (published 0.2.0 to npm).
 
 ---
 
@@ -173,11 +173,9 @@ Google Fonts `<link>` and strip the Mac fonts from `--mono`.
 
 Publish-blocking:
 
-- [ ] **Add a `repository` field to package.json** before `npm publish` — npm
-      shows no source link without it. I did not guess the URL:
-      `"repository": { "type": "git", "url": "git+https://github.com/<you>/release-graph.git" }`
-- [ ] `npm publish` — the name `release-graph` was free on the registry as of
-      2026-09-05. `npm pack --dry-run` is clean: 26.2 kB, src + README + LICENSE only.
+- [x] `repository` field is in package.json.
+- [x] Published: 0.1.0 on 2026-09-06, 0.2.0 on 2026-10-30 (maintenance lines,
+      patch-id, responsive UI). Publishing needs an authenticator OTP (`--otp`).
 
 Known gaps, none blocking:
 
