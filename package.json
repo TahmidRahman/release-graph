@@ -1,6 +1,6 @@
 {
   "name": "release-graph",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "See which pull requests actually made it into your later releases, and how fast you ship. One self-contained HTML report, no dependencies.",
   "type": "module",
   "bin": {

@@ -260,6 +260,50 @@ export async function build(cwd, opts) {
     rel.firstCommitDate = earliest === Infinity ? rel.date : earliest;
   });
 
+  // --- reachability: every release and branch marked in one pass -----------
+  const RN = releases.length;
+  const marks = [
+    ...releases.map((r) => ({ sha: r.sha })),
+    ...integration.map((n) => ({ sha: byName.get(n).sha })),
+    ...releaseBranches.map((b) => ({ sha: b.sha })),
+  ];
+  const bs = buildBitsets(graph, marks);
+  const branchBit = (name) => RN + integration.indexOf(name);
+  const lineBits = releaseBranches
+    .map((b, i) => (b.line ? RN + integration.length + i : -1))
+    .filter((b) => b >= 0);
+
+  // --- parent: the release this one was cut from ---------------------------
+  //
+  // Ownership alone cannot say: a fix merged into release/1.9.16 after its tag
+  // and forward-ported into 2.0.1 is "owned" by 2.0.1, which shipped it first,
+  // so v1.9.17 walks into 2.0.1's commits. Nor can tag ancestry: opencrvs
+  // tags commits that never reach the next patch (v2.1.0's is not in v2.1.1).
+  // So a release counts as in another's history when most of its own commits
+  // are. Prefer the closest lower version on the same minor line (1.9.17 ->
+  // 1.9.16), else the latest such release (a new minor off the trunk), else
+  // keep the ownership boundary.
+  {
+    const held = new Uint32Array(RN * RN); // held[o * RN + i]: o's own commits inside i
+    for (const [sha, o] of owner) {
+      const w = bs.wordsOf(sha);
+      if (!w) continue;
+      for (let i = 0; i < RN; i++) if (bitOf(w, i)) held[o * RN + i]++;
+    }
+    const inside = (o, i) => (o.commits ? held[o.index * RN + i] * 2 >= o.commits : bs.has(o.sha, i));
+    releases.forEach((rel, i) => {
+      let same = null, latest = null;
+      for (const o of releases) {
+        if (o === rel || o.date > rel.date || !inside(o, i)) continue;
+        if (o.version.major === rel.version.major && o.version.minor === rel.version.minor &&
+          compareVersion(o.version, rel.version) < 0 && (!same || compareVersion(o.version, same.version) > 0)) same = o;
+        if (!latest || o.date > latest.date) latest = o;
+      }
+      const pick = same || latest;
+      if (pick) rel.parentIndex = pick.index;
+    });
+  }
+
   // Branch point: where this release's line left its predecessor.
   const spans = releases.map((r) => r.date - (r.parentIndex >= 0 ? releases[r.parentIndex].date : r.date)).filter((d) => d > 0).sort((a, b) => a - b);
   const typical = spans.length ? spans[Math.floor(spans.length / 2)] : 30 * 86400;
@@ -273,18 +317,6 @@ export async function build(cwd, opts) {
     if (rel.startDate > rel.date) rel.startDate = rel.date;
   }
 
-  // --- reachability: every release and branch marked in one pass -----------
-  const RN = releases.length;
-  const marks = [
-    ...releases.map((r) => ({ sha: r.sha })),
-    ...integration.map((n) => ({ sha: byName.get(n).sha })),
-    ...releaseBranches.map((b) => ({ sha: b.sha })),
-  ];
-  const bs = buildBitsets(graph, marks);
-  const branchBit = (name) => RN + integration.indexOf(name);
-  const lineBits = releaseBranches
-    .map((b, i) => (b.line ? RN + integration.length + i : -1))
-    .filter((b) => b >= 0);
 
   // Where each PR NUMBER and each PR TITLE shows up, so a squash, cherry-pick
   // or backport still counts as the same change having arrived. `backports` records
@@ -481,6 +513,8 @@ export async function build(cwd, opts) {
       sha: r.sha,
       date: r.date,
       startDate: r.startDate,
+      // where its line left the parent: the parent's tag, before any work began
+      branchDate: r.parentIndex >= 0 ? Math.min(releases[r.parentIndex].date, r.startDate) : r.startDate,
       firstCommitDate: r.firstCommitDate,
       tagger: r.tagger,
       subject: r.subject.slice(0, 200),

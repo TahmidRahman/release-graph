@@ -90,6 +90,9 @@ function rails() {
 function ribbon(r) {
   const c = color(r);
   const x0 = X(r.startDate);
+  // a release whose work began well after it was cut leaves the trunk at its
+  // parent's tag and idles, dashed, until the first commit
+  const xb = r.branchDate != null && X(r.branchDate) < x0 - 6 ? X(r.branchDate) : x0;
   let x1 = X(r.date);
   if (x1 - x0 < MIN_W) x1 = x0 + MIN_W;
   const trunkSt = r.status[TRUNK] || 'merged';
@@ -97,7 +100,8 @@ function ribbon(r) {
 
   let s = rails();
   // branch off the trunk
-  s += `<path d="M${x0},${TRUNK_Y} C${x0 + 8},${TRUNK_Y} ${x0},${RIB_Y} ${x0 + 9},${RIB_Y}" fill="none" stroke="${c}" stroke-width="2" opacity=".75"/>`;
+  s += `<path d="M${xb},${TRUNK_Y} C${xb + 8},${TRUNK_Y} ${xb},${RIB_Y} ${xb + 9},${RIB_Y}" fill="none" stroke="${c}" stroke-width="2" opacity=".75"/>`;
+  if (xb < x0) s += `<path d="M${xb + 8},${RIB_Y} L${x0 + 8},${RIB_Y}" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="2 3" opacity=".6"/>`;
   // the release line itself
   s += `<path class="rib" d="M${x0 + 8},${RIB_Y} L${x1},${RIB_Y}" fill="none" stroke="${c}" stroke-width="3.5" stroke-linecap="round"/>`;
   // a tag on a maintenance line (release-3.5, v4) is not meant to merge back
@@ -345,7 +349,7 @@ function openPanel(name) {
   $('#panel .ph').innerHTML =
     `<h2><b style="background:${color(r)}"></b>${tagUrl ? `<a href="${tagUrl}" target="_blank" rel="noreferrer" style="color:inherit;text-decoration:none">${esc(r.name)}</a>` : esc(r.name)}</h2>`
     + `<div class="sub">${day(r.firstCommitDate || r.startDate)} → ${day(r.date)} · ${r.commits} commits`
-    + (r.parent ? ` · since <code>${esc(r.parent)}</code>` : '')
+    + (r.parent ? ` · cut from <code>${esc(r.parent)}</code>` : '')
     + (r.tagger ? ` · tagged by ${esc(r.tagger)}` : '') + `</div>`
     + (gh && gh.title ? `<div class="sub" style="margin-top:4px;color:var(--ink-2)">${esc(gh.title)}</div>` : '')
     + `<button class="close" title="close (esc)">&times;</button>`;
@@ -446,7 +450,7 @@ function boot() {
         hover(name);
         if (e.target.closest('.rib, .rowlabel')) {
           const r = REL.find((x) => x.name === name);
-          showTip(`<div class="t">${esc(r.name)}</div><div class="m">${day(r.startDate)} → ${day(r.date)} · ${r.commits} commits · ${r.prs.length} PRs</div>`
+          showTip(`<div class="t">${esc(r.name)}${r.parent ? ` <span class="m">cut from ${esc(r.parent)}</span>` : ''}</div><div class="m">${day(r.startDate)} → ${day(r.date)} · ${r.commits} commits · ${r.prs.length} PRs</div>`
             + `<div class="st"><span class="pill ${relVerdict(r)}">${r.carried} carried</span>`
             + (r.driftPRs ? `<span class="pill drift">${r.driftPRs} off ${esc(TRUNK)}</span>` : '')
             + (r.lostPRs ? `<span class="pill lost">${r.lostPRs} not in ${esc(NEWEST)}</span>` : '') + `</div>`, e, true);

@@ -4,7 +4,7 @@
 (82 tags, 25k commits, git-flow, `release-v*` branches) — 51 releases, 5415 PRs,
 0.7s, 1.28 MB output.
 
-Last session: 2026-10-30 (published 0.2.0 to npm).
+Last session: 2026-10-30 (published 0.2.1 to npm).
 
 ---
 
@@ -164,6 +164,14 @@ exactly. Worth re-running that check after any change to `model.js`.
     contradicting the ribbon; now a neutral "stays on its maintenance line".
 15. The theme toggle had a dead third state (system = light); the prereleases
     toggle showed when the model held no prereleases.
+16. v1.9.17 showed as cut from v2.0.1. A fix merged into release/1.9.16 after
+    its tag and forward-ported into 2.0.1 is owned by 2.0.1 (it shipped first),
+    and the parent was "the newest owner walked into". The parent is now a
+    release whose own commits are mostly (>= half) in this release's history,
+    preferring the closest lower version on the same minor line. Tag ancestry
+    alone fails here: opencrvs tags commits that never reach the next patch
+    (v2.1.0's tag is not in v2.1.1). The ribbon now leaves the trunk at the
+    parent's tag (`branchDate`) and idles dashed until the first commit.
 
 To test responsiveness, frame the report at fixed widths in a same-origin iframe
 (the browser window can't always be resized). For the office-PC case, remove the
@@ -174,7 +182,7 @@ Google Fonts `<link>` and strip the Mac fonts from `--mono`.
 Publish-blocking:
 
 - [x] `repository` field is in package.json.
-- [x] Published: 0.1.0 on 2026-09-06, 0.2.0 on 2026-10-30 (maintenance lines,
+- [x] Published: 0.1.0 on 2026-09-06, 0.2.0 and 0.2.1 on 2026-10-30 (maintenance lines,
       patch-id, responsive UI). Publishing needs an authenticator OTP (`--otp`).
 
 Known gaps, none blocking:
